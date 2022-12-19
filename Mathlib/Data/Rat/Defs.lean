@@ -101,7 +101,7 @@ theorem mkInt_zero (n) : n /. 0 = 0 :=
 #align rat.mk_zero Rat.mkInt_zero
 
 @[simp]
-theorem zero_mk (d) (h : d ≠ 0) (w) : mk 0 d h w = 0 := by congr
+theorem zero_mk (d) (h : d ≠ 0) (w) : mk' 0 d h w = 0 := by congr
 
 @[simp]
 theorem zero_mkPNat (n) : mkPNat 0 n = 0 := by
@@ -133,7 +133,7 @@ theorem mkInt_eq_zero {a b : ℤ} (b0 : b ≠ 0) : a /. b = 0 ↔ a = 0 := by
     simp [mkPNat, normalize] at e
     injection e with e
     apply Int.eq_mul_of_div_eq_right gcd_abs_dvd_left e
-  cases' b with b <;> simp only [mkInt, mkNat, Int.ofNat_eq_coe, dite_eq_left_iff] at h
+  cases' b with b <;> simp only [divInt, inline, mkRat, Int.ofNat_eq_coe, dite_eq_left_iff] at h
   · simp only [not_false_iff, forall_true_left] at h
     apply this
     apply h
@@ -151,7 +151,7 @@ theorem mkInt_ne_zero {a b : ℤ} (b0 : b ≠ 0) : a /. b ≠ 0 ↔ a ≠ 0 :=
 theorem normalize_eq_normalize_iff
     (a : Int) (b : Nat) (hb : b ≠ 0) (c : Int) (d : Nat) (hd : d ≠ 0) :
     normalize a b hb = normalize c d hd ↔ a * ↑d = c * ↑b := by
-  simp only [normalize, maybeNormalize_eq, mk.injEq]
+  simp only [normalize, maybeNormalize_eq, mk'.injEq]
   constructor
   · rintro ⟨h₁, h₂⟩
     have h₂ := congrArg (fun x : Nat => (x : Int)) h₂
@@ -216,7 +216,7 @@ theorem mkInt_eq : ∀ {a b c d : ℤ}, b ≠ 0 → d ≠ 0 → (a /. b = c /. d
     have hb' : b ≠ 0 := mt (congr_arg Int.ofNat) hb
     simp [hb']
     all_goals
-      cases' d with d d <;> simp [mk, mkNat, Nat.succPNat]
+      cases' d with d d <;> simp [mk', mkNat, Nat.succPNat]
       have hd' : d ≠ 0 := mt (congr_arg Int.ofNat) hd
       simp [hd']
       all_goals rw [this]; try rfl
@@ -245,13 +245,13 @@ theorem div_mkInt_div_cancel_left {a b c : ℤ} (c0 : c ≠ 0) : a * c /. (b * c
 #align rat.div_mk_div_cancel_left Rat.div_mkInt_div_cancel_left
 
 -- Porting note: this can move to Std4
-theorem normalize_eq_mk (n : Int) (d : Nat) (h : d ≠ 0) (c : Nat.gcd (Int.natAbs n) d = 1) :
-    normalize n d h = mk n d h c := by
+theorem normalize_eq_mk' (n : Int) (d : Nat) (h : d ≠ 0) (c : Nat.gcd (Int.natAbs n) d = 1) :
+    normalize n d h = mk' n d h c := by
   simp [normalize, c, maybeNormalize]
 
 @[simp]
 theorem num_den : ∀ {a : ℚ}, a.num /. a.den = a
-  | ⟨n, d, h, (c : _ = 1)⟩ => show mkNat n d = _ by simp [mkNat, h, mkPNat, c, normalize_eq_mk]
+  | ⟨n, d, h, (c : _ = 1)⟩ => show mkNat n d = _ by simp [mkNat, h, mkPNat, c, normalize_eq_mk']
 #align rat.num_denom Rat.num_den
 
 theorem num_den' {n d h c} : (⟨n, d, h, c⟩ : ℚ) = n /. d :=
@@ -369,10 +369,10 @@ theorem mkInt_neg_den (n d : ℤ) : n /. -d = -n /. d := by
 -- Porting note: since `Sub ℚ` is defined in Std, we need to prove this here.
 -- Presumably we will copy the proof from `add_def`.
 @[simp]
-theorem sub_def {a b c d : ℤ} (b0 : b ≠ 0) (d0 : d ≠ 0) :
+theorem sub_def'' {a b c d : ℤ} (b0 : b ≠ 0) (d0 : d ≠ 0) :
     a /. b - c /. d = (a * d - c * b) /. (b * d) := by
   sorry
-#align rat.sub_def Rat.sub_def
+#align rat.sub_def Rat.sub_def''
 
 #align rat.mul Rat.mul
 
@@ -380,7 +380,7 @@ theorem sub_def {a b c d : ℤ} (b0 : b ≠ 0) (d0 : d ≠ 0) :
 example : (Int.natAbs n : ℤ) ∣ n := Int.natAbs_dvd.mpr (refl n)
 
 @[simp]
-theorem mul_def {a b c d : ℤ} (b0 : b ≠ 0) (d0 : d ≠ 0) : a /. b * (c /. d) = a * c /. (b * d) := by
+theorem mul_def' {a b c d : ℤ} (b0 : b ≠ 0) (d0 : d ≠ 0) : a /. b * (c /. d) = a * c /. (b * d) := by
   apply lift_binop_eq Rat.mul
   · intros n₁ d₁ h₁ c₁ n₂ d₂ h₂ c₂
     unfold Rat.mul
