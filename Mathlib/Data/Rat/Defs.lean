@@ -83,12 +83,12 @@ def mkInt : ℤ → ℤ → ℚ
   | n, Int.negSucc d => mkPNat (-n) d.succPNat
 #align rat.mk Rat.mkInt
 
-scoped infixl:70 " /. " => Rat.mkInt
+-- scoped infixl:70 " /. " => Rat.mkInt
 
 theorem mkPNat_eq (n d h) : mkPNat n ⟨d, h⟩ = n /. d := by
   -- Porting note: this used `change n /. d with dite _ _ _` which has not been implemented yet.
   change _ = dite _ _ _
-  simp [ne_of_gt h]
+  simp [ne_of_gt h, mkPNat]
 #align rat.mk_pnat_eq Rat.mkPNat_eq
 
 theorem mkNat_eq (n d) : mkNat n d = n /. d :=
