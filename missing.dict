@@ -1,0 +1,8 @@
+MISSING IN ML3: Pi.update_eq_div_mul_mulSingle pi.update_eq_sub_add_single ????? Pi.update_eq_sub_add_single
+MISSING IN ML3: Pi.existsMulOfLe pi.exists_mul_of_le ????? Pi.existsAddOfLe
+MISSING IN ML3: MulEquiv.withOneCongr_symm mul_equiv.with_one_congr_symm ????? AddEquiv.withZeroCongr_symm
+MISSING IN ML3: MulEquiv.withOneCongr_trans mul_equiv.with_one_congr_trans ????? AddEquiv.withZeroCongr_trans
+MISSING IN ML3: SemiconjBy.function_semiconj_mul_right_swap add_semiconj_by.function_semiconj_add_right_swap ????? AddSemiconjBy.function_semiconj_add_right_swap
+MISSING IN ML3: Units.mk_val add_units.mk_coe ????? AddUnits.mk_val
+MISSING IN ML3: MulEquiv.withOneCongr_refl mul_equiv.with_one_congr_refl ????? AddEquiv.withZeroCongr_refl
+MISSING IN ML3: SemiconjBy.transitive add_semiconj_by.transitive ????? AddSemiconjBy.transitive

@@ -1,0 +1,7 @@
+Bad  ❌ OneHomClass.map_one -> ✅ ZeroHomClass.map_zero
+Bad  ❌ Pi.instPow -> ✅ Pi.instSMul
+Bad  ❌ OrderMonoidHom.comp_apply -> ✅ OrderAddMonoidHom.comp_apply
+Bad  ❌ Function.Injective.cancelMonoid -> ✅ Function.Injective.addCancelMonoid
+Bad  ❌ OneHom.map_one' -> ✅ ZeroHom.map_zero'
+Bad  ❌ Con.instPowQuotientToMulToMulOneClassNat -> ✅ AddCon.Quotient.nsmul
+Bad  ❌ MulOpposite.op_inv -> ✅ AddOpposite.op_neg
