@@ -106,7 +106,7 @@ for path4 in Path(mathlib4_root).glob('**/*.lean'):
 
     if commit is None:
         print(f"Commit is None for module: {module}")
-    	continue
+        continue
 
     log = subprocess.run(
         ['git', 'log', '--oneline', str(path4)],
