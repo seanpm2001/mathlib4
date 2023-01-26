@@ -23,13 +23,11 @@ open List Subtype Nat
 
 variable {α : Type _} {β : Type _} {γ : Type _}
 
-#print Multiset /-
 /-- `multiset α` is the quotient of `list α` by list permutation. The result
   is a type of finite sets with duplicates allowed.  -/
 def Multiset.{u} (α : Type u) : Type u :=
   Quotient (List.isSetoid α)
 #align multiset Multiset
--/
 
 namespace Multiset
 
@@ -208,12 +206,10 @@ end Rec
 
 section Mem
 
-#print Multiset.Mem /-
 /-- `a ∈ s` means that `a` has nonzero multiplicity in `s`. -/
 def Mem (a : α) (s : Multiset α) : Prop :=
   Quot.liftOn s (fun l => a ∈ l) fun l₁ l₂ (e : l₁ ~ l₂) => propext <| e.mem_iff
 #align multiset.mem Multiset.Mem
--/
 
 instance : Membership α (Multiset α) :=
   ⟨Mem⟩
