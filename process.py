@@ -32,19 +32,20 @@ def zipFix(l, c, r, data):
     (ln, align), *data = data
     while c[0] + 1 > ln:
         l, c, r = zipLeft(l, c, r)
-    while c[1] != "\n":
+    while c[1] != "\n" and r != []:
         l, c, r = zipRight(l, c, r)
-    r.insert(0, (c[0]+1, c[1]))
-    c = (c[0], align)
+    if r == []:
+        r = [(c[0]+1, align)]
+        l, c, r = zipRight(l, c, r)
+    else:
+        r.insert(0, (c[0]+1, c[1]))
+        c = (c[0], align)
     return zipFix(l, c, r, data)
 
 def fixFile(fn, data):
-    fnbak = fn + ".bak"
-    shutil.copyfile(fn, fnbak)
-    c, *l = reversed(list(enumerate(open(fnbak).readlines())))
+    c, *l = reversed(list(enumerate(open(fn).readlines())))
     fixed = zipFix(l, c, [], data)
     open(fn, 'w').writelines([line for _, line in fixed])
-    os.remove(fn + ".bak")
 
 for k, v in missers.items():
     fn = k.replace('.', '/') + ".lean"
