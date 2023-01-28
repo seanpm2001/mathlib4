@@ -49,7 +49,10 @@ def fixFile(fn, data):
 
 for k, v in missers.items():
     fn = k.replace('.', '/') + ".lean"
-    print("===", fn)
+    if not "Mathlib" in fn:
+        print("=== [SKIP]", fn)
+        continue
     data = list(reversed(sorted(v, key=lambda p: p[0])))
     fixFile(fn, data)
+    print("=== [DONE] ", fn)
 
