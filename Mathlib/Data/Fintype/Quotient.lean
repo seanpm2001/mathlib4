@@ -79,20 +79,26 @@ def Quotient.finChoice {ι : Type _} [DecidableEq ι] [Fintype ι] {α : ι → 
         Quotient.mk inferInstance (fun (i : ι) (h : i ∈ a) => Quotient.out (f i))
       simp only
       refine' eq_of_heq _
-      refine' HEq.trans (_ : HEq _ (g a)) (_ : HEq (g a) (g b))
+      refine' HEq.trans (eqRec_heq' _ _ : HEq _ (g a)) (_ : HEq (g a) (g b))
       congr 1; exact Quotient.sound h)
     (fun f => ⟦fun i => f i (Finset.mem_univ _)⟧) fun a b h => Quotient.sound fun i => by
       apply h
 #align quotient.fin_choice Quotient.finChoice
 
+/- Has an error in the motive for Quotient.inductionOn:
+
+application type mismatch
+  f i (_ : i ∈ Finset.univ)
+argument has type
+  i ∈ Finset.univ
+but function has type
+  i ∈ x✝ → α i
+-/
 theorem Quotient.finChoice_eq {ι : Type _} [DecidableEq ι] [Fintype ι] {α : ι → Type _}
     [∀ i, Setoid (α i)] (f : ∀ i, α i) : (Quotient.finChoice fun i => ⟦f i⟧) = ⟦f⟧ := by
-  let q
-  swap
-  change Quotient.liftOn q _ _ = _
-  have : q = ⟦fun i h => f i⟧ := by
-    dsimp only [q]
-    exact Quotient.inductionOn (@Finset.univ ι _).1 fun l => Quotient.finChoiceAux_eq _ _
-  simp [this]
-  exact Setoid.refl _
+  simp only [Quotient.finChoice, Quotient.finChoiceAux_eq]
+  exact Quotient.inductionOn Finset.univ.val fun l => Quotient.sound (Setoid.refl _)
+
+  done
+
 #align quotient.fin_choice_eq Quotient.finChoice_eq
