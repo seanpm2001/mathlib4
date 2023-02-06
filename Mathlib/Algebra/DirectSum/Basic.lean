@@ -44,14 +44,14 @@ def DirectSum [∀ i, AddCommMonoid (β i)] : Type _ :=
 
 -- Porting note: Added inhabited instance manually
 instance [∀ i, AddCommMonoid (β i)] : Inhabited (DirectSum ι β) :=
-  by delta DirectSum; infer_instance
+  inferInstanceAs (Inhabited (Π₀ i, β i))
 
 -- Porting note: Added addCommMonoid instance manually
 instance [∀ i, AddCommMonoid (β i)] : AddCommMonoid (DirectSum ι β) :=
-  by delta DirectSum; infer_instance
+  inferInstanceAs (AddCommMonoid (Π₀ i, β i))
 
 instance [∀ i, AddCommMonoid (β i)] : CoeFun (DirectSum ι β) fun _ => ∀ i : ι, β i :=
-  by delta DirectSum; infer_instance
+  inferInstanceAs (CoeFun (Π₀ i, β i) fun _ => ∀ i : ι, β i)
 
 -- Porting note: scoped does not work with notation3; TODO rewrite as lean4 notation?
 -- scoped[DirectSum]
@@ -79,7 +79,7 @@ section AddCommGroup
 variable [∀ i, AddCommGroup (β i)]
 
 instance : AddCommGroup (DirectSum ι β) :=
-  by delta DirectSum; infer_instance
+  inferInstanceAs (AddCommGroup (Π₀ i, β i))
 variable {β}
 
 @[simp]
@@ -355,6 +355,8 @@ noncomputable def sigmaCurryEquiv [∀ i, DecidableEq (α i)] [∀ i j, Decidabl
 
 end Sigma
 
+set_option maxHeartbeats 0 in -- Porting note: this is too slow
+set_option synthInstance.maxHeartbeats 0 in -- Porting note: this is too slow
 /-- The canonical embedding from `⨁ i, A i` to `M` where `A` is a collection of `AddSubmonoid M`
 indexed by `ι`.
 
