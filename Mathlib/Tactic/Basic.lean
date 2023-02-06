@@ -137,13 +137,6 @@ elab_rules : tactic
       (atTarget := evalTactic <| ← `(tactic| show $newType))
       (failed := fun _ ↦ throwError "change tactic failed")
 
-/--
-`by_cases p` makes a case distinction on `p`,
-resulting in two subgoals `h : p ⊢` and `h : ¬ p ⊢`.
--/
-macro "by_cases " e:term : tactic =>
-  `(tactic| by_cases $(mkIdent `h) : $e)
-
 syntax "transitivity" (ppSpace colGt term)? : tactic
 set_option hygiene false in
 macro_rules
