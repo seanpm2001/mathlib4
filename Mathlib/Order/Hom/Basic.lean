@@ -89,8 +89,6 @@ structure OrderHom (α β : Type _) [Preorder α] [Preorder β] where
 /-- Notation for an `OrderHom`. -/
 infixr:25 " →o " => OrderHom
 
-attribute [coe] OrderHom.toFun
-
 /-- An order embedding is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) ≤ (f b)`.
 This definition is an abbreviation of `RelEmbedding (≤) (≤)`. -/
 abbrev OrderEmbedding (α β : Type _) [LE α] [LE β] :=
@@ -219,10 +217,10 @@ namespace OrderHom
 
 variable [Preorder α] [Preorder β] [Preorder γ] [Preorder δ]
 
-/-- Helper instance for when there's too many metavariables to apply the coercion via `FunLike`
-directly. -/
-instance : CoeFun (α →o β) fun _ => α → β :=
-  ⟨OrderHom.toFun⟩
+instance : OrderHomClass (α →o β) α β where
+  coe := toFun
+  coe_injective' f g h := by cases f; cases g; congr
+  map_rel f _ _ h := f.monotone' h
 
 protected theorem monotone (f : α →o β) : Monotone f :=
   f.monotone'
@@ -232,26 +230,16 @@ protected theorem mono (f : α →o β) : Monotone f :=
   f.monotone
 #align order_hom.mono OrderHom.mono
 
-instance : OrderHomClass (α →o β) α β where
-  coe := toFun
-  coe_injective' f g h := by
-    cases f
-    cases g
-    congr
-  map_rel f _ _ h := f.monotone h
-
 /-- See Note [custom simps projection]. Note: all other FunLike classes use `apply` instead of `coe`
 for the projection names. Maybe we should change this. -/
 def Simps.coe (f : α →o β) : α → β := f
 
 initialize_simps_projections OrderHom (toFun → coe)
 
--- Porting note: dropped `to_fun_eq_coe` as it is a tautology now.
-#noalign order_hom.to_fun_eq_coe
+@[simp] lemma toFun_eq_coe (f : α →o β) : f.toFun = f := rfl
+#align order_hom.to_fun_eq_coe OrderHom.toFun_eq_coe
 
--- Porting note: no longer good as a simp lemma, as after `whnfR` the LHS is just `f` anyway.
-theorem coe_fun_mk {f : α → β} (hf : Monotone f) : (mk f hf : α → β) = f :=
-  rfl
+@[simp] theorem coe_fun_mk {f : α → β} (hf : Monotone f) : (mk f hf : α → β) = f := rfl
 #align order_hom.coe_fun_mk OrderHom.coe_fun_mk
 
 -- See library note [partially-applied ext lemmas]
@@ -262,10 +250,11 @@ theorem ext (f g : α →o β) (h : (f : α → β) = g) : f = g :=
 
 #noalign order_hom.coe_eq
 
+-- porting note: todo: drop name once we don't need `#align`
 /-- One can lift an unbundled monotone function to a bundled one. -/
-instance : CanLift (α → β) (α →o β) (↑) Monotone where
+instance instCanLiftMono : CanLift (α → β) (α →o β) (↑) Monotone where
   prf f h := ⟨⟨f, h⟩, rfl⟩
-#align order_hom.monotone.can_lift OrderHom.instCanLiftForAllOrderHomToFunMonotone
+#align order_hom.monotone.can_lift OrderHom.instCanLiftMono
 
 /-- Copy of an `OrderHom` with a new `toFun` equal to the old one. Useful to fix definitional
 equalities. -/
@@ -979,7 +968,6 @@ section LE
 
 variable [LE α] [LE β] [LE γ]
 
-@[simp]
 theorem le_iff_le (e : α ≃o β) {x y : α} : e x ≤ e y ↔ x ≤ y :=
   e.map_rel_iff
 #align order_iso.le_iff_le OrderIso.le_iff_le
