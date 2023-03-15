@@ -62,7 +62,7 @@ theorem zero_cpow_eq_iff {x : ℂ} {a : ℂ} : 0 ^ x = a ↔ x ≠ 0 ∧ a = 0 �
   constructor
   · intro hyp
     simp only [cpow_def, eq_self_iff_true, if_true] at hyp
-    by_cases x = 0
+    by_cases h : x = 0
     · subst h
       simp only [if_true, eq_self_iff_true] at hyp
       right

@@ -1036,7 +1036,7 @@ theorem mul_diagonal [Fintype n] [DecidableEq n] (d : n → α) (M : Matrix m n 
 theorem diagonal_mul_diagonal [Fintype n] [DecidableEq n] (d₁ d₂ : n → α) :
     diagonal d₁ ⬝ diagonal d₂ = diagonal fun i => d₁ i * d₂ i := by
   ext i j
-  by_cases i = j <;>
+  by_cases h : i = j <;>
   simp [h]
 #align matrix.diagonal_mul_diagonal Matrix.diagonal_mul_diagonal
 
@@ -1979,7 +1979,7 @@ theorem transpose_zero [Zero α] : (0 : Matrix m n α)ᵀ = 0 := by
 theorem transpose_one [DecidableEq n] [Zero α] [One α] : (1 : Matrix n n α)ᵀ = 1 := by
   ext i j
   rw [transpose_apply, ← diagonal_one]
-  by_cases i = j
+  by_cases h : i = j
   · simp only [h, diagonal_apply_eq]
   · simp only [diagonal_apply_ne _ h, diagonal_apply_ne' _ h]
 #align matrix.transpose_one Matrix.transpose_one
@@ -2772,14 +2772,14 @@ theorem updateColumn_ne [DecidableEq n] {j' : n} (j_ne : j' ≠ j) :
 
 theorem updateRow_apply [DecidableEq m] {i' : m} :
     updateRow M i b i' j = if i' = i then b j else M i' j := by
-  by_cases i' = i
+  by_cases h : i' = i
   · rw [h, updateRow_self, if_pos rfl]
   · rw [updateRow_ne h, if_neg h]
 #align matrix.update_row_apply Matrix.updateRow_apply
 
 theorem updateColumn_apply [DecidableEq n] {j' : n} :
     updateColumn M j c i j' = if j' = j then c i else M i j' := by
-  by_cases j' = j
+  by_cases h : j' = j
   · rw [h, updateColumn_self, if_pos rfl]
   · rw [updateColumn_ne h, if_neg h]
 #align matrix.update_column_apply Matrix.updateColumn_apply

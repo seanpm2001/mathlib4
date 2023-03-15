@@ -419,7 +419,7 @@ theorem realize_liftAt {n n' m : ℕ} {φ : L.BoundedFormula α n} {v : α → M
     simp only [mapTermRel, Realize, realize_castLe_of_eq h, ih3 (hmn.trans k.succ.le_succ)]
     refine' forall_congr' fun x => iff_eq_eq.mpr (congr rfl (funext (Fin.lastCases _ fun i => _)))
     · simp only [Function.comp_apply, val_last, snoc_last]
-      by_cases k < m
+      by_cases h : k < m
       · rw [if_pos h]
         refine' (congr rfl (ext _)).trans (snoc_last _ _)
         simp only [coe_orderIso_apply, coe_castAdd, val_last, self_eq_add_right]
@@ -524,7 +524,7 @@ theorem realize_toPrenexImpRight {φ ψ : L.BoundedFormula α n} (hφ : IsQF φ)
     refine' ⟨_, fun h' => _⟩
     · rintro ⟨a, ha⟩ h
       exact ⟨a, ha h⟩
-    · by_cases φ.Realize v xs
+    · by_cases h : φ.Realize v xs
       · obtain ⟨a, ha⟩ := h' h
         exact ⟨a, fun _ => ha⟩
       · inhabit M
@@ -544,7 +544,7 @@ theorem realize_toPrenexImp {φ ψ : L.BoundedFormula α n} (hφ : IsPrenex φ) 
     refine' ⟨_, fun h' => _⟩
     · rintro ⟨a, ha⟩ h
       exact ha (h a)
-    · by_cases ψ.Realize v xs
+    · by_cases h : ψ.Realize v xs
       · inhabit M
         exact ⟨default, fun _h'' => h⟩
       · obtain ⟨a, ha⟩ := not_forall.1 (h ∘ h')

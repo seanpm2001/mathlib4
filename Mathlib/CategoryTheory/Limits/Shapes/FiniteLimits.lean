@@ -177,7 +177,7 @@ instance fintypeHom (j j' : WidePullbackShape J) : Fintype (j ⟶ j')
     · cases' j with j
       · exact {Hom.id none}
       · exact {Hom.term j}
-    · by_cases some j' = j
+    · by_cases h : some j' = j
       · rw [h]
         exact {Hom.id j}
       · exact ∅
@@ -201,7 +201,7 @@ instance fintypeHom (j j' : WidePushoutShape J) : Fintype (j ⟶ j') where
     · cases' j' with j'
       · exact {Hom.id none}
       · exact {Hom.init j'}
-    · by_cases some j = j'
+    · by_cases h : some j = j'
       · rw [h]
         exact {Hom.id j'}
       · exact ∅
