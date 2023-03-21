@@ -67,7 +67,6 @@ namespace ndFunction
 -- unsafe example (f : α → MetaM (List β)) : ndFunction α β := f
 -- unsafe example (f : α → MetaM (List (MetaM β))) : ndFunction α β := f
 
-unsafe def depthFirst (t : ndFunction α α) : ndFunction α α := ListM.depthFirst t
 
 end ndFunction
 
@@ -85,6 +84,9 @@ fun G => do match G.active with
 | g :: gs =>
   ListM.squish (t g) |>.map fun hs => { G with active := hs ++ gs }
 
+unsafe instance : HOrElse ndTactic ndTactic ndTactic :=
+  ⟨fun f g a => (f a).append (g () a)⟩
+
 unsafe instance : HAndThen ndTactic ndTactic ndTactic :=
   ⟨fun f g a => f a >>= g ()⟩
 
@@ -92,7 +94,7 @@ unsafe instance : HAndThen ndTactic ndTactic ndTactic :=
 Move the main goal to the suspended list if it satisfies the predicate,
 and otherwise do nothing.
 -/
-unsafe def suspending (p : MVarId → MetaM Bool) : ndTactic :=
+unsafe def suspend (p : MVarId → MetaM Bool) : ndTactic :=
 fun G => do match G.active with
 | [] => failure
 | g :: gs =>
@@ -102,10 +104,31 @@ fun G => do match G.active with
     pure G
 
 /--
+Takes a procedure which inspects the list of active goals and either
+* fails, signaling no outcomes
+* returns `none`, signalling the active goals should not be changed, or
+* returns `some A`, signalling the active goals should be replaced with `A`.
+
+Returns a non-deterministic tactic,
+with either 0 (in the case of failure) or 1 (otherwise) outcomes.
+-/
+unsafe def proc (f : List MVarId → MetaM (Option (List MVarId))) : ndTactic :=
+fun G => do match ← f G.active with
+| none => pure G
+| some A' => pure { G with active := A' }
+
+
+unsafe def discharge (f : MVarId → MetaM (Option (List MVarId))) : ndTactic :=
+fun G => do match G.active with
+| [] => failure
+| g :: gs => do match ← f g with
+  | none => pure { }
+
+/--
 Given a nondeterministic tactic `t`,
 construct the nondeterministic tactic which considers every possible iteration of `t`.
 -/
-unsafe def depthFirst (t : ndTactic) : ndTactic := ListM.depthFirst t
+unsafe def depthFirst (t : ndTactic) : ndTactic := depthFirst t
 
 /--
 Run a nondeterministic tactic:
@@ -117,6 +140,9 @@ fun g => (t (.singleton g) |>.filter Goals.done |>.head) <&> Goals.suspended
 
 end ndTactic
 
-def depthFirst (t : MVarId → MetaM (List (MetaM (List MVarId)))) (s : MVarId → MetaM Bool) :
+def Lean.MVarId.nondeterministic
+    (choices : MVarId → MetaM (List (MetaM (List MVarId))))
+    (proc : List MVarId → MetaM (Option (List MVarId)) := fun _ => pure none)
+    (suspend : MVarId → MetaM Bool := fun _ => pure false) :
     MVarId → MetaM (List MVarId) :=
-unsafe fun g => ((ndTactic.suspending s >> ndTactic.of t).depthFirst).run g
+unsafe fun g => ((ndTactic.proc proc >> ndTactic.suspend suspend >> ndTactic.of choices).depthFirst).run g
