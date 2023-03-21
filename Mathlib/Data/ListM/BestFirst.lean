@@ -24,11 +24,10 @@ Options:
   by discarding elements from the priority queue when it grows too large
 -/
 
-namespace ListM
 
-variable [Monad m]
+variable [Monad m] [Alternative m] [Ord α]
 
-open Std
+open Std ListM
 
 /--
 Auxiliary function for `bestFirstSearch`, that updates the internal state,
@@ -38,7 +37,7 @@ We remove the next element from the list contained in the best triple
 enqueue it and return it.
 -/
 -- The return type has `× List α` rather than just `× Option α` so `bestFirstSearch` can use `fixl`.
-unsafe def bestFirstSearchAux [Alternative m] [Ord α]
+unsafe def bestFirstSearchAux
     (f : Nat → α → ListM m α) (maxQueued : Option Nat := none) :
     RBMap α (Nat × ListM m α) compare → m (RBMap α (Nat × ListM m α) compare × List α) :=
 fun s => do
@@ -72,7 +71,7 @@ This implements a "beam" search, which may be incomplete but uses bounded memory
 
 Note that if the graph is not a tree then elements will be visited multiple times.
 -/
-unsafe def bestFirstSearch [Alternative m] [Ord α] (f : α → ListM m α) (a : α)
+unsafe def bestFirstSearch (f : α → ListM m α) (a : α)
     (maxDepth : Option Nat := none) (maxQueued : Option Nat := none) : ListM m α :=
 let f := match maxDepth with
 | none => fun _ a => f a
