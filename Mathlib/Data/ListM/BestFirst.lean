@@ -16,12 +16,14 @@ and at each step take the next child of the highest priority node in the queue.
 
 This is useful in meta code for searching for solutions in the presence of alternatives.
 It can be nice to represent the choices via a lazy list,
-the later choices don't need to be evaluated while we do depth first search on earlier choices.
+so the later choices don't need to be evaluated while we do depth first search on earlier choices.
 
 Options:
 * `maxDepth` allows bounding the search depth
 * `maxQueued` implements "beam" search,
   by discarding elements from the priority queue when it grows too large
+* `removeDuplicates` maintains an `RBSet` of previously visited nodes;
+  otherwise if the graph is not a tree nodes may be visited multiple times.
 -/
 
 
@@ -69,7 +71,8 @@ The option `maxQueued` bounds the size of the priority queue,
 discarding the lowest priority nodes as needed.
 This implements a "beam" search, which may be incomplete but uses bounded memory.
 
-Note that if the graph is not a tree then elements will be visited multiple times.
+The option `removeDuplicates` keeps an `RBSet` of previously visited nodes.
+Otherwise, if the graph is not a tree then nodes will be visited multiple times.
 -/
 unsafe def bestFirstSearch (f : α → ListM m α) (a : α)
     (maxDepth : Option Nat := none) (maxQueued : Option Nat := none) (removeDuplicates := true) :
