@@ -25,7 +25,7 @@ Options:
 -/
 
 
-variable [Monad m] [Alternative m] [Ord α]
+variable {α : Type u} [Monad m] [Alternative m] [Ord α]
 
 open Std ListM
 
@@ -72,8 +72,19 @@ This implements a "beam" search, which may be incomplete but uses bounded memory
 Note that if the graph is not a tree then elements will be visited multiple times.
 -/
 unsafe def bestFirstSearch (f : α → ListM m α) (a : α)
-    (maxDepth : Option Nat := none) (maxQueued : Option Nat := none) : ListM m α :=
+    (maxDepth : Option Nat := none) (maxQueued : Option Nat := none) (removeDuplicates := true) :
+    ListM m α :=
 let f := match maxDepth with
 | none => fun _ a => f a
 | some d => fun n a => if d < n then empty else f a
-cons do pure (some a, fixl (bestFirstSearchAux f maxQueued) (single a (0, f 0 a)))
+if removeDuplicates then
+  let f' : Nat → α → ListM (StateT.{u} (RBSet α compare) m) α := fun n a =>
+    (f n a).liftM >>= fun b => do
+      let s ← get
+      if s.contains b then failure
+      set <| s.insert b
+      pure b
+  cons (do pure (some a, fixl (bestFirstSearchAux f' maxQueued) (single a (0, f' 0 a))))
+    |>.run' (RBSet.empty.insert a)
+else
+  cons do pure (some a, fixl (bestFirstSearchAux f maxQueued) (single a (0, f 0 a)))
