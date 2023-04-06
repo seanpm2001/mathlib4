@@ -9,10 +9,6 @@ Authors: Mario Carneiro, Keeley Hoek, Simon Hudon, Scott Morrison
 ! if you have ported upstream changes.
 -/
 import Mathlib.Data.Option.Defs
-<<<<<<< HEAD
-import Mathlib.Control.Traversable.Basic
-=======
->>>>>>> ListM_depth_first
 
 /-! # Monadic lazy lists.
 

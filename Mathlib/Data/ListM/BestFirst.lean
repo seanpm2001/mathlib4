@@ -87,14 +87,7 @@ if removeDuplicates then
       if s.contains b then failure
       set <| s.insert b
       pure b
-<<<<<<< HEAD
-  cons (do pure (some a, fixl (bestFirstSearchAux f' maxQueued) (single a (0, f' 0 a))))
-    |>.run' (RBSet.empty.insert a)
-else
-  cons do pure (some a, fixl (bestFirstSearchAux f maxQueued) (single a (0, f 0 a)))
-=======
   cons (do pure (some a, fixl (bestFirstSearchAux f' maxQueued) (RBMap.single a (0, f' 0 a))))
     |>.runState' (RBSet.empty.insert a)
 else
   cons do pure (some a, fixl (bestFirstSearchAux f maxQueued) (RBMap.single a (0, f 0 a)))
->>>>>>> ListM_depth_first
