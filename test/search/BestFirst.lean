@@ -1,6 +1,12 @@
 import Mathlib.Data.ListM.BestFirst
 import Mathlib.Data.Nat.Sqrt
 
+/-!
+# Testing best first search and beam search.
+
+We check that `bestFirstSearch` can find its way around a wall.
+-/
+
 open Lean ListM
 
 def wall : Int × Int → Bool :=
@@ -22,4 +28,4 @@ instance : Ord (Int × Int) where
     else if q.2 < p.2 then .gt
     else .eq
 
-#eval bestFirstSearch nbhd (10, 10) (maxQueued := some 4) |>.takeWhile (· ≠ (0,0)) |>.force
+#eval bestFirstSearch nbhd (10, 10) (maxQueued := some 4) |>.takeUpToFirst (· = (0,0)) |>.force

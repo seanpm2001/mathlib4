@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import Mathlib.Data.ListM.Basic
+import Mathlib.Control.Traversable.Basic
 
 /-!
 # Depth first search
@@ -57,18 +58,18 @@ and returns the monadic lazy list of nodes visited in order.
 This is potentially very expensive.
 If you want to do efficient enumerations from a generation function,
 avoiding duplication up to equality or isomorphism,
-use Brendan McKay's generation by canonical construction path method.
+use Brendan McKay's method of "generation by canonical construction path".
 -/
 -- TODO can you make this work in `List` and `ListM m` simultaneously, by being tricky with monads?
-unsafe def depthFirstRemovingDuplicates [BEq α] [Hashable α]
+unsafe def depthFirstRemovingDuplicates {α : Type u} [BEq α] [Hashable α]
     (f : α → ListM m α) (a : α) (maxDepth : Option Nat := none) : ListM m α :=
-let f' : α → ListM (StateT (HashSet α) m) α := fun a =>
+let f' : α → ListM (StateT.{u} (HashSet α) m) α := fun a =>
   (f a).liftM >>= fun b => do
     let s ← get
     if s.contains b then failure
     set <| s.insert b
     pure b
-(depthFirst f' a maxDepth).run' (HashSet.empty.insert a)
+(depthFirst f' a maxDepth).runState' (HashSet.empty.insert a)
 
 /--
 Variant of `depthFirst`,
