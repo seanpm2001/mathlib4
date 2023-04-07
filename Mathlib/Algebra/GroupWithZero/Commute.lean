@@ -9,7 +9,7 @@ Authors: Johan Commelin
 ! if you have ported upstream changes.
 -/
 import Mathlib.Algebra.GroupWithZero.Semiconj
-import Mathlib.Algebra.Group.Commute
+import Mathlib.Algebra.Group.Commute.Basic
 import Mathlib.Tactic.Nontriviality
 
 /-!

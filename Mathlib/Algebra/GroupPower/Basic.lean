@@ -9,7 +9,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 ! if you have ported upstream changes.
 -/
 import Mathlib.Algebra.Divisibility.Basic
-import Mathlib.Algebra.Group.Commute
+import Mathlib.Algebra.Group.Commute.Basic
 import Mathlib.Algebra.Group.TypeTags
 
 /-!

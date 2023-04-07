@@ -76,7 +76,7 @@ import Mathlib.Algebra.GradedMonoid
 import Mathlib.Algebra.GradedMulAction
 import Mathlib.Algebra.Group.Basic
 import Mathlib.Algebra.Group.Commutator
-import Mathlib.Algebra.Group.Commute
+import Mathlib.Algebra.Group.Commute.Basic
 import Mathlib.Algebra.Group.Conj
 import Mathlib.Algebra.Group.ConjFinite
 import Mathlib.Algebra.Group.Defs

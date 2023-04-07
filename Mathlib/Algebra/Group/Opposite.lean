@@ -9,7 +9,7 @@ Authors: Kenny Lau
 ! if you have ported upstream changes.
 -/
 import Mathlib.Algebra.Group.InjSurj
-import Mathlib.Algebra.Group.Commute
+import Mathlib.Algebra.Group.Commute.Basic
 import Mathlib.Algebra.Hom.Equiv.Basic
 import Mathlib.Algebra.Opposites
 import Mathlib.Data.Int.Cast.Defs

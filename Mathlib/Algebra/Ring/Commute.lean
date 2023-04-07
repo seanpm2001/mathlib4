@@ -10,7 +10,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Yury Kudryashov, Ne
 -/
 import Mathlib.Algebra.Ring.Semiconj
 import Mathlib.Algebra.Ring.Units
-import Mathlib.Algebra.Group.Commute
+import Mathlib.Algebra.Group.Commute.Basic
 
 /-!
 # Semirings and rings

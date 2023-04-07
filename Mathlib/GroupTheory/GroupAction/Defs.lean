@@ -9,7 +9,7 @@ Authors: Chris Hughes, Yury Kudryashov
 ! if you have ported upstream changes.
 -/
 import Mathlib.Algebra.Group.TypeTags
-import Mathlib.Algebra.Group.Commute
+import Mathlib.Algebra.Group.Commute.Basic
 import Mathlib.Algebra.Hom.Group
 import Mathlib.Algebra.Opposites
 import Mathlib.Logic.Embedding.Basic

@@ -11,7 +11,7 @@ Ported by: Frédéric Dupuis
 ! if you have ported upstream changes.
 -/
 import Mathlib.Algebra.Hom.Group
-import Mathlib.Algebra.Group.Commute
+import Mathlib.Algebra.Group.Commute.Basic
 
 /-!
 # Multiplicative homomorphisms respect semiconjugation and commutation.

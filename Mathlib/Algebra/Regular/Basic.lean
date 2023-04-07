@@ -8,7 +8,7 @@ Authors: Damiano Testa
 ! Please do not edit these lines, except to modify the commit id
 ! if you have ported upstream changes.
 -/
-import Mathlib.Algebra.Group.Commute
+import Mathlib.Algebra.Group.Commute.Basic
 import Mathlib.Algebra.Order.Monoid.Lemmas
 import Mathlib.Algebra.GroupWithZero.Basic
 
