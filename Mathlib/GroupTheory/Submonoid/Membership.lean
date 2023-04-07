@@ -12,7 +12,7 @@ Amelia Livingston, Yury Kudryashov
 import Mathlib.GroupTheory.Submonoid.Operations
 import Mathlib.Algebra.BigOperators.Basic
 import Mathlib.Algebra.FreeMonoid.Basic
-import Mathlib.Data.Finset.NoncommProd
+import Mathlib.Data.Finset.NoncommProd.Basic
 
 /-!
 # Submonoids: membership criteria

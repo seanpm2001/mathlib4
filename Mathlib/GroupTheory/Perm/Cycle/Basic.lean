@@ -9,7 +9,7 @@ Authors: Chris Hughes, Yaël Dillies
 ! if you have ported upstream changes.
 -/
 import Mathlib.Algebra.Module.BigOperators
-import Mathlib.Data.Finset.NoncommProd
+import Mathlib.Data.Finset.NoncommProd.Basic
 import Mathlib.Data.Fintype.Perm
 import Mathlib.Data.Int.ModEq
 import Mathlib.GroupTheory.Perm.List

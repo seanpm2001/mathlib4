@@ -659,7 +659,7 @@ import Mathlib.Data.Finset.LocallyFinite
 import Mathlib.Data.Finset.MulAntidiagonal
 import Mathlib.Data.Finset.NAry
 import Mathlib.Data.Finset.NatAntidiagonal
-import Mathlib.Data.Finset.NoncommProd
+import Mathlib.Data.Finset.NoncommProd.Basic
 import Mathlib.Data.Finset.Option
 import Mathlib.Data.Finset.Order
 import Mathlib.Data.Finset.PImage

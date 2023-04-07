@@ -9,7 +9,7 @@ Authors: Joachim Breitner
 ! if you have ported upstream changes.
 -/
 import Mathlib.GroupTheory.OrderOfElement
-import Mathlib.Data.Finset.NoncommProd
+import Mathlib.Data.Finset.NoncommProd.Basic
 import Mathlib.Data.Fintype.BigOperators
 import Mathlib.Data.Nat.GCD.BigOperators
 import Mathlib.Order.SupIndep
