@@ -9,14 +9,18 @@ variable {M : Type _} [Monoid M]
 /-- `commClosure s hs` is just the `closure` of `s`. It takes a proof of
 `s.Pairwise Commute` explicitly, so that we can put a `CommMonoid` instance on
 `commClosure s hs` -/
-@[nolint unusedArguments]
+@[to_additive "`commClosure s hs` is just the `closure` of `s`. It takes a proof of
+`s.Pairwise AddCommute` explicitly, so that we can put an `AddCommMonoid` instance on
+`commClosure s hs`", nolint unusedArguments]
 def commClosure (s : Set M) (_hs : s.Pairwise Commute) : Submonoid M :=
   closure s
-
+#print AddSubmonoid.commClosure
+@[to_additive]
 theorem commClosure_eq_closure (s : Set M) (hs : s.Pairwise Commute) :
     commClosure s hs = closure s :=
   rfl
 
+@[to_additive]
 theorem commute_of_mem_closure {s : Set M} (hs : s.Pairwise Commute)
     {x y : M} (hx : x ∈ closure s) (hy : y ∈ closure s) : Commute x y :=
   closure_induction₂ hx hy
@@ -29,6 +33,7 @@ theorem commute_of_mem_closure {s : Set M} (hs : s.Pairwise Commute)
     (fun _ _ _ => Commute.mul_left)
     (fun _ _ _ => Commute.mul_right)
 
+@[to_additive]
 instance commClosure.commMonoid
     (s : Set M) (hs : s.Pairwise Commute) : CommMonoid (commClosure s hs) :=
   { inferInstanceAs (Monoid (commClosure s hs)) with
