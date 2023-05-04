@@ -280,14 +280,13 @@ end compWithZero
 section cancelDenoms
 /-- `normalizeDenominatorsInLHS h lhs` assumes that `h` is a proof of `lhs R 0`.
  It creates a proof of `lhs' R 0`, where all numeric division in `lhs` has been cancelled. -/
-def normalizeDenominatorsInLHS (h lhs : Expr) : TacticM Expr :=
-  withMainContext do
-    let goal ← getMainGoal
-    let (v, lhs') ← CancelFactors.derive lhs
-    if v = 1 then return h else do
-    let (_ih, h'') ← mkSingleCompZeroOf v h
-    let ⟨_, nep, _⟩ ← goal.rewrite lhs' (← inferType h'')
-    mkEqMP nep h''
+def normalizeDenominatorsInLHS (h lhs : Expr) : MetaM Expr := do
+  let (v, lhs') ← CancelFactors.derive lhs
+  if v = 1 then return h else do
+  let (_ih, h'') ← mkSingleCompZeroOf v h
+  let Expr.mvar fakeGoal ← mkFreshExprMVar none | throwError "This didn't happen."
+  let ⟨_, nep, _⟩ ← fakeGoal.rewrite lhs' (← inferType h'')
+  mkEqMP nep h''
 
 -- TODO: move this to a relevant place
 def _root_.Lean.Expr.containsConst (e : Expr) (p : Name → Bool) : Bool :=
@@ -297,7 +296,7 @@ Option.isSome <| e.find? fun | .const n _ => p n | _ => false
 `cancel_denoms pf` assumes `pf` is a proof of `t R 0`. If `t` contains the division symbol `/`,
 it tries to scale `t` to cancel out division by numerals.
 -/
-def cancel_denoms : Preprocessor :=
+def cancelDenoms : Preprocessor :=
 { name := "cancel denominators",
   transform := λ pf =>
 do
@@ -412,7 +411,7 @@ The default list of preprocessors, in the order they should typically run.
 -/
 def defaultPreprocessors : List GlobalBranchingPreprocessor :=
   [filterComparisons, removeNegations, natToInt, strengthenStrictInt,
-    compWithZero/-, cancelDenoms-/]
+    compWithZero, cancelDenoms]
 
 /--
 `preprocess pps l` takes a list `l` of proofs of propositions.
