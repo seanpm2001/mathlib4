@@ -289,6 +289,10 @@ def normalizeDenominatorsInLHS (h lhs : Expr) : TacticM Expr :=
     let ⟨_, nep, _⟩ ← goal.rewrite lhs' (← inferType h'')
     mkEqMP nep h''
 
+-- TODO: move this to a relevant place
+def _root_.Lean.Expr.containsConst (e : Expr) (p : Name → Bool) : Bool :=
+Option.isSome <| e.find? fun | .const n _ => p n | _ => false
+
 /--
 `cancel_denoms pf` assumes `pf` is a proof of `t R 0`. If `t` contains the division symbol `/`,
 it tries to scale `t` to cancel out division by numerals.
@@ -299,7 +303,7 @@ def cancel_denoms : Preprocessor :=
 do
    let t ← inferType pf
    let (_, lhs) ← parseCompAndExpr t
-   if lhs.containsConstant (λ n => n = `has_div.div) then
+   if lhs.containsConst (λ n => n = `has_div.div) then
      return [(← normalizeDenominatorsInLHS pf lhs)]
    else
      return [pf]
