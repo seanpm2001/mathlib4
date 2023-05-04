@@ -6,6 +6,7 @@ Ported by: Scott Morrison
 -/
 import Mathlib.Tactic.Linarith.Datatypes
 import Mathlib.Tactic.Zify
+import Mathlib.Tactic.CancelDenoms
 import Mathlib.Lean.Exception
 import Std.Data.RBMap.Basic
 import Mathlib.Data.HashMap
@@ -276,31 +277,33 @@ def compWithZero : Preprocessor where
 
 end compWithZero
 
--- FIXME the `cancelDenoms : Preprocessor` from mathlib3 will need to wait
--- for a port of the `cancel_denoms` tactic.
 section cancelDenoms
--- /--
--- `normalize_denominators_in_lhs h lhs` assumes that `h` is a proof of `lhs R 0`.
--- It creates a proof of `lhs' R 0`, where all numeric division in `lhs` has been cancelled.
--- -/
--- meta def normalize_denominators_in_lhs (h lhs : expr) : tactic expr :=
--- do (v, lhs') ← cancel_factors.derive lhs,
---    if v = 1 then return h else do
---    (ih, h'') ← mk_single_comp_zero_pf v h,
---    (_, nep, _) ← infer_type h'' >>= rewrite_core lhs',
---    mk_eq_mp nep h''
+/-- `normalizeDenominatorsInLHS h lhs` assumes that `h` is a proof of `lhs R 0`.
+ It creates a proof of `lhs' R 0`, where all numeric division in `lhs` has been cancelled. -/
+def normalizeDenominatorsInLHS (h lhs : Expr) : TacticM Expr :=
+  withMainContext do
+    let goal ← getMainGoal
+    let (v, lhs') ← CancelFactors.derive lhs
+    if v = 1 then return h else do
+    let (_ih, h'') ← mkSingleCompZeroOf v h
+    let ⟨_, nep, _⟩ ← goal.rewrite lhs' (← inferType h'')
+    mkEqMP nep h''
 
--- /--
--- `cancel_denoms pf` assumes `pf` is a proof of `t R 0`. If `t` contains the division symbol `/`,
--- it tries to scale `t` to cancel out division by numerals.
--- -/
--- meta def cancel_denoms : preprocessor :=
--- { name := "cancel denominators",
---   transform := λ pf,
--- (do some (_, lhs) ← parse_into_comp_and_expr <$> infer_type pf,
---    guardb $ lhs.contains_constant (= `has_div.div),
---    singleton <$> normalize_denominators_in_lhs pf lhs)
--- <|> return [pf] }
+/--
+`cancel_denoms pf` assumes `pf` is a proof of `t R 0`. If `t` contains the division symbol `/`,
+it tries to scale `t` to cancel out division by numerals.
+-/
+def cancel_denoms : Preprocessor :=
+{ name := "cancel denominators",
+  transform := λ pf =>
+do
+   let t ← inferType pf
+   let (_, lhs) ← parseCompAndExpr t
+   if lhs.containsConstant (λ n => n = `has_div.div) then
+     return [(← normalizeDenominatorsInLHS pf lhs)]
+   else
+     return [pf]
+    }
 end cancelDenoms
 
 section nlinarith
