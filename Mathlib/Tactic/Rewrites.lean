@@ -79,6 +79,11 @@ def RewriteResult.computeRefl (r : RewriteResult) : MetaM RewriteResult := do
   catch _ =>
     pure { r with refl? := some false }
 
+/-- Shortcut for calling `solveByElim`. -/
+def solveByElim (goals : List MVarId) := do
+  let cfg : SolveByElim.Config := { exfalso := false, symm := true }
+  SolveByElim.solveByElim.processSyntax cfg false false [] [] #[] goals
+
 /--
 Find lemmas which can rewrite the goal.
 
@@ -102,8 +107,9 @@ def rewritesCore (lemmas : DiscrTree (Name × Bool × Nat) s) (goal : MVarId) :
     return if result.mvarIds.isEmpty then
       some ⟨lem, symm, weight, result, none⟩
     else
-      -- TODO Perhaps allow new goals? Try closing them with solveByElim?
-      none
+      match ← try? <| goal.withContext <| solveByElim result.mvarIds with
+      | some [] => some ⟨lem, symm, weight, result, none⟩
+      | _ => none
 
 /-- Find lemmas which can rewrite the goal. -/
 def rewrites (lemmas : DiscrTree (Name × Bool × Nat) s) (goal : MVarId)

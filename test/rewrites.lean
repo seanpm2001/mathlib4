@@ -12,6 +12,9 @@ example [Category C] {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : f ≫ 𝟙 _ ≫ 
 example [Group G] (h : G) : 1 * h = h := by
   rewrites!
 
+example [DecidableEq α] {x : α} {l : List α} (h : x ∉ l) : Insert.insert x l = x :: l := by
+  rewrites!
+
 example [Group G] (g h : G) : g * g⁻¹ * h = h := by
   rewrites -- the right answer is not the first solution, so we can't use rewrites!
   /- Prints:
