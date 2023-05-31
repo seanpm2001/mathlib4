@@ -261,6 +261,8 @@ def arrowCongrₛₗ (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃
     map_add' := fun f g => by simp only [add_comp, comp_add]
     map_smul' := fun t f => by simp only [smul_comp, comp_smulₛₗ] }
 #align continuous_linear_equiv.arrow_congrₛₗ ContinuousLinearEquiv.arrowCongrₛₗ
+#align continuous_linear_equiv.arrow_congrₛₗ_apply ContinuousLinearEquiv.arrowCongrₛₗ_apply
+#align continuous_linear_equiv.arrow_congrₛₗ_symm_apply ContinuousLinearEquiv.arrowCongrₛₗ_symm_apply
 
 variable [RingHomIsometric σ₂₁]
 
@@ -282,13 +284,15 @@ variable [RingHomIsometric σ₁₂]
 
 /-- A pair of continuous (semi)linear equivalences generates an continuous (semi)linear equivalence
 between the spaces of continuous (semi)linear maps. -/
-@[simps!]
+@[simps! apply]
 def arrowCongrSL (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) : (E →SL[σ₁₄] H) ≃SL[σ₄₃] F →SL[σ₂₃] G :=
   { e₁₂.arrowCongrₛₗ e₄₃ with
     continuous_toFun := e₁₂.arrowCongrₛₗ_continuous e₄₃
     continuous_invFun := e₁₂.symm.arrowCongrₛₗ_continuous e₄₃.symm }
 set_option linter.uppercaseLean3 false in
 #align continuous_linear_equiv.arrow_congrSL ContinuousLinearEquiv.arrowCongrSL
+set_option linter.uppercaseLean3 false in
+#align continuous_linear_equiv.arrow_congrSL_apply ContinuousLinearEquiv.arrowCongrSL_applyₓ
 
 end Semilinear
 
