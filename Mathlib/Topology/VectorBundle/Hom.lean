@@ -17,7 +17,7 @@ import Mathlib.Analysis.NormedSpace.OperatorNorm
 We define the (topological) vector bundle of continuous (semi)linear maps between two vector bundles
 over the same base.
 
-Given bundles `E₁ E₂ : B → Type*`, normed spaces `F₁` and `F₂`, and a ring-homomorphism `σ` between
+Given bundles `E₁ E₂ : B → Type _`, normed spaces `F₁` and `F₂`, and a ring-homomorphism `σ` between
 their respective scalar fields, we define `bundle.continuous_linear_map σ F₁ E₁ F₂ E₂ x` to be a
 type synonym for `λ x, E₁ x →SL[σ] E₂ x`. If the `E₁` and `E₂` are vector bundles with model fibers
 `F₁` and `F₂`, then this will be a vector bundle with fiber `F₁ →SL[σ] F₂`.
@@ -62,39 +62,46 @@ variable (F₂ : Type _) (E₂ : B → Type _) [∀ x, AddCommGroup (E₂ x)] [�
 
 variable [∀ x, TopologicalSpace (E₂ x)]
 
-include F₁ F₂
-
 -- In this definition we require the scalar rings `𝕜₁` and `𝕜₂` to be normed fields, although
 -- something much weaker (maybe `comm_semiring`) would suffice mathematically -- this is because of
 -- a typeclass inference bug with pi-types:
 -- https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/vector.20bundles.20--.20typeclass.20inference.20issue
+-- porting note: copied all arguments because there is no `include` in Lean 4
 /-- The bundle of continuous `σ`-semilinear maps between the topological vector bundles `E₁` and
 `E₂`. This is a type synonym for `λ x, E₁ x →SL[σ] E₂ x`.
 
 We intentionally add `F₁` and `F₂` as arguments to this type, so that instances on this type
 (that depend on `F₁` and `F₂`) actually refer to `F₁` and `F₂`. -/
-@[nolint unused_arguments]
-protected def Bundle.ContinuousLinearMap (x : B) : Type _ :=
-  E₁ x →SL[σ] E₂ x deriving Inhabited
+@[nolint unusedArguments]
+protected def Bundle.ContinuousLinearMap {𝕜₁ 𝕜₂ : Type _} [NormedField 𝕜₁] [NormedField 𝕜₂]
+    (σ : 𝕜₁ →+* 𝕜₂) {B : Type _}
+    (_F₁ : Type _) (E₁ : B → Type _) [∀ x, AddCommGroup (E₁ x)] [∀ x, Module 𝕜₁ (E₁ x)]
+    [∀ x, TopologicalSpace (E₁ x)]
+    (_F₂ : Type _) (E₂ : B → Type _) [∀ x, AddCommGroup (E₂ x)] [∀ x, Module 𝕜₂ (E₂ x)]
+    [∀ x, TopologicalSpace (E₂ x)] (x : B) : Type _ :=
+  E₁ x →SL[σ] E₂ x
 #align bundle.continuous_linear_map Bundle.ContinuousLinearMap
 
+instance : Inhabited (Bundle.ContinuousLinearMap σ F₁ E₁ F₂ E₂ x) :=
+  inferInstanceAs <| Inhabited <| E₁ x →SL[σ] E₂ x
+
 instance Bundle.ContinuousLinearMap.addMonoidHomClass (x : B) :
-    AddMonoidHomClass (Bundle.ContinuousLinearMap σ F₁ E₁ F₂ E₂ x) (E₁ x) (E₂ x) := by
-  delta_instance bundle.continuous_linear_map
+    AddMonoidHomClass (Bundle.ContinuousLinearMap σ F₁ E₁ F₂ E₂ x) (E₁ x) (E₂ x) :=
+  inferInstanceAs <| AddMonoidHomClass (E₁ x →SL[σ] E₂ x) (E₁ x) (E₂ x)
 #align bundle.continuous_linear_map.add_monoid_hom_class Bundle.ContinuousLinearMap.addMonoidHomClass
 
 variable [∀ x, TopologicalAddGroup (E₂ x)]
 
-instance (x : B) : TopologicalSpace (Bundle.ContinuousLinearMap σ F₁ E₁ F₂ E₂ x) := by
-  delta_instance bundle.continuous_linear_map
+instance (x : B) : TopologicalSpace (Bundle.ContinuousLinearMap σ F₁ E₁ F₂ E₂ x) :=
+  inferInstanceAs <| TopologicalSpace (E₁ x →SL[σ] E₂ x)
 
-instance (x : B) : AddCommMonoid (Bundle.ContinuousLinearMap σ F₁ E₁ F₂ E₂ x) := by
-  delta_instance bundle.continuous_linear_map
+instance (x : B) : AddCommMonoid (Bundle.ContinuousLinearMap σ F₁ E₁ F₂ E₂ x) :=
+  inferInstanceAs <| AddCommMonoid (E₁ x →SL[σ] E₂ x)
 
 variable [∀ x, ContinuousSMul 𝕜₂ (E₂ x)]
 
-instance (x : B) : Module 𝕜₂ (Bundle.ContinuousLinearMap σ F₁ E₁ F₂ E₂ x) := by
-  delta_instance bundle.continuous_linear_map
+instance (x : B) : Module 𝕜₂ (Bundle.ContinuousLinearMap σ F₁ E₁ F₂ E₂ x) :=
+  inferInstanceAs <| Module 𝕜₂ (E₁ x →SL[σ] E₂ x)
 
 end Defs
 
