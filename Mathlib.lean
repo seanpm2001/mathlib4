@@ -1927,6 +1927,7 @@ import Mathlib.ModelTheory.Definability
 import Mathlib.ModelTheory.ElementaryMaps
 import Mathlib.ModelTheory.Encoding
 import Mathlib.ModelTheory.FinitelyGenerated
+import Mathlib.ModelTheory.Fraisse
 import Mathlib.ModelTheory.Graph
 import Mathlib.ModelTheory.LanguageMap
 import Mathlib.ModelTheory.Order
