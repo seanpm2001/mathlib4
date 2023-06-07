@@ -108,9 +108,6 @@ def of : R →+* AdjoinRoot f :=
   (mk f).comp C
 #align adjoin_root.of AdjoinRoot.of
 
-instance [DistribSMul S R] [IsScalarTower S R R] : SMul S (AdjoinRoot f) :=
-  Submodule.Quotient.hasSmul' _
-
 instance [DistribSMul S R] [IsScalarTower S R R] : DistribSMul S (AdjoinRoot f) :=
   Submodule.Quotient.distribSmul' _
 
@@ -141,10 +138,12 @@ instance isScalarTower_right [DistribSMul S R] [IsScalarTower S R R] :
 
 instance [Monoid S] [DistribMulAction S R] [IsScalarTower S R R] (f : R[X]) :
     DistribMulAction S (AdjoinRoot f) :=
-  Submodule.Quotient.distribMulAction' _
+  { Submodule.Quotient.distribMulAction' _ with
+    smul := (. • .) }
 
 instance [CommSemiring S] [Algebra S R] : Algebra S (AdjoinRoot f) :=
-  Ideal.Quotient.algebra S
+  { Ideal.Quotient.algebra S with
+    smul := (. • .) }
 
 @[simp]
 theorem algebraMap_eq : algebraMap R (AdjoinRoot f) = of f :=

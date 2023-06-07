@@ -121,16 +121,17 @@ including `SplittingFieldAux` (such as instances) should be defined using
 this recursion in each field, rather than defining the whole tuple through
 recursion.
 -/
-def SplittingFieldAux (n : ℕ) : ∀ {K : Type u} [Field K], ∀ _ : K[X], Type u :=
-  -- Porting note: added motive
-  Nat.recOn (motive := fun (_x : ℕ) => ∀ {K : Type u} [_inst_4 : Field K], K[X] → Type u)
-    n (fun {K} _ _ => K) fun _ ih _ _ f => ih f.removeFactor
+@[simp]
+def SplittingFieldAux : ∀ (_n : ℕ) {K : Type u} [Field K], ∀ _ : K[X], Type u
+  | 0, K, _, _ => K
+  | n+1, _, _, f => SplittingFieldAux n f.removeFactor
 #align polynomial.splitting_field_aux Polynomial.SplittingFieldAux
 
 namespace SplittingFieldAux
 
+@[simp]
 theorem succ (n : ℕ) (f : K[X]) :
-    SplittingFieldAux (n + 1) f = SplittingFieldAux n f.removeFactor :=
+    SplittingFieldAux (n.succ) f = SplittingFieldAux n f.removeFactor :=
   rfl
 #align polynomial.splitting_field_aux.succ Polynomial.SplittingFieldAux.succ
 
@@ -152,32 +153,29 @@ so these conditions are equivalent to well-definedness), which is all we need.
 
 
 /-- Splitting fields have a zero. -/
-protected def zero (n : ℕ) : ∀ {K : Type u} [Field K], ∀ {f : K[X]}, SplittingFieldAux n f :=
-  Nat.recOn (motive := (fun (n : ℕ) => ∀ {K : Type u} [Field K] {f : K[X]}, SplittingFieldAux n f))
-    n (fun {K} _ _ => @Zero.zero K _) fun _ ih _ _ _ => ih
+@[simp]
+protected def zero : ∀ (n : ℕ) {K : Type u} [Field K], ∀ {f : K[X]}, SplittingFieldAux n f
+  | 0, K, _ => (0 : K)
+  | n+1, _, _ => SplittingFieldAux.zero n
 #align polynomial.splitting_field_aux.zero Polynomial.SplittingFieldAux.zero
 
 /-- Splitting fields have an addition. -/
-protected def add (n : ℕ) :
-    ∀ {K : Type u} [Field K],
-      ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f → SplittingFieldAux n f :=
-  Nat.recOn
-    (motive := fun n => ∀ {K : Type u} [Field K],
-      ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f → SplittingFieldAux n f)
-    n (fun {K} _ _ => @Add.add K _) fun _ ih _ _ _ => ih
+@[simp]
+protected def add : ∀ (n : ℕ), ∀ {K : Type u} [Field K],
+    ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f → SplittingFieldAux n f
+  | 0, K, _, _ => @Add.add K _
+  | n+1, _, _, _ => SplittingFieldAux.add n
 #align polynomial.splitting_field_aux.add Polynomial.SplittingFieldAux.add
 
 set_option synthInstance.maxHeartbeats 30000 in
 /-- Splitting fields inherit scalar multiplication. -/
-protected def smul (n : ℕ) :
+@[simp, reducible]
+protected def smul : ∀ (n : ℕ),
     ∀ (α : Type _) {K : Type u} [Field K],
       ∀ [DistribSMul α K],
-        ∀ [IsScalarTower α K K] {f : K[X]}, α → SplittingFieldAux n f → SplittingFieldAux n f :=
-  Nat.recOn
-    (motive := fun n => ∀ (α : Type _) {K : Type u} [Field K],
-      ∀ [DistribSMul α K],
-        ∀ [IsScalarTower α K K] {f : K[X]}, α → SplittingFieldAux n f → SplittingFieldAux n f)
-    n (fun α {K} fK ds _ _ => @SMul.smul _ K _) fun n ih α K fK ds ist f => by exact ih α
+        ∀ [IsScalarTower α K K] {f : K[X]}, α → SplittingFieldAux n f → SplittingFieldAux n f
+  | 0, _, K, _, _, _ => @HSMul.hSMul _ K K _
+  | n+1, α, _, _, _, _ => SplittingFieldAux.smul n α
 #align polynomial.splitting_field_aux.smul Polynomial.SplittingFieldAux.smul
 
 instance hasSmul (α : Type _) (n : ℕ) {K : Type u} [Field K] [DistribSMul α K] [IsScalarTower α K K]
@@ -186,63 +184,50 @@ instance hasSmul (α : Type _) (n : ℕ) {K : Type u} [Field K] [DistribSMul α 
 #align polynomial.splitting_field_aux.has_smul Polynomial.SplittingFieldAux.hasSmul
 
 set_option synthInstance.maxHeartbeats 30000 in
-instance isScalarTower (n : ℕ) :
+instance isScalarTower : ∀ (n : ℕ),
     ∀ (R₁ R₂ : Type _) {K : Type u} [SMul R₁ R₂] [Field K],
       ∀ [DistribSMul R₂ K] [DistribSMul R₁ K],
         ∀ [IsScalarTower R₁ K K] [IsScalarTower R₂ K K] [IsScalarTower R₁ R₂ K] {f : K[X]},
-          IsScalarTower R₁ R₂ (SplittingFieldAux n f) :=
-  Nat.recOn
-    (motive := fun (n : ℕ) =>
-    ∀ (R₁ R₂ : Type _) {K : Type u} [SMul R₁ R₂] [Field K],
-      ∀ [DistribSMul R₂ K] [DistribSMul R₁ K],
-        ∀ [IsScalarTower R₁ K K] [IsScalarTower R₂ K K] [IsScalarTower R₁ R₂ K] {f : K[X]},
-          IsScalarTower R₁ R₂ (SplittingFieldAux n f))
-    n
-    (fun R₁ R₂ {K} _ _ hs₂ hs₁ _ _ h f => by
-      rcases hs₁ with @⟨@⟨⟨hs₁⟩, _⟩, _⟩
-      rcases hs₂ with @⟨@⟨⟨hs₂⟩, _⟩, _⟩
-      exact h)
-    fun n ih R₁ R₂ K _ _ _ _ _ _ _ f => ih R₁ R₂
+          IsScalarTower R₁ R₂ (SplittingFieldAux n f)
+  | 0, R₁, R₂, K, _, _, _, _, _, _, _ => inferInstanceAs (IsScalarTower R₁ R₂ K)
+  | n+1, R₁, R₂, _, _, _, _, _, _, _, _ => SplittingFieldAux.isScalarTower n R₁ R₂
 #align polynomial.splitting_field_aux.is_scalar_tower Polynomial.SplittingFieldAux.isScalarTower
 
 /-- Splitting fields have a negation. -/
-protected def neg (n : ℕ) :
-    ∀ {K : Type u} [Field K], ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f :=
-  Nat.recOn
-    (motive := fun n => ∀ {K : Type u} [Field K],
-      ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f)
-    n (fun {K} _ _ => @Neg.neg K _) fun _ ih _ _ _ => ih
+@[simp]
+protected def neg : ∀ (n : ℕ),
+    ∀ {K : Type u} [Field K], ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f
+  | 0, K, _ => @Neg.neg K _
+  | n+1, _, _ => SplittingFieldAux.neg n
 #align polynomial.splitting_field_aux.neg Polynomial.SplittingFieldAux.neg
 
 /-- Splitting fields have subtraction. -/
-protected def sub (n : ℕ) :
+@[simp]
+protected def sub : ∀ (n : ℕ),
     ∀ {K : Type u} [Field K],
-      ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f → SplittingFieldAux n f :=
-  Nat.recOn
-    (motive := fun n => ∀ {K : Type u} [Field K],
-      ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f → SplittingFieldAux n f)
-    n (fun {K} _ _ => @Sub.sub K _) fun _ ih _ _ _ => ih
+      ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f → SplittingFieldAux n f
+  | 0, K, _ => @Sub.sub K _
+  | n+1, _, _ => SplittingFieldAux.sub n
 #align polynomial.splitting_field_aux.sub Polynomial.SplittingFieldAux.sub
 
 /-- Splitting fields have a one. -/
-protected def one (n : ℕ) : ∀ {K : Type u} [Field K], ∀ {f : K[X]}, SplittingFieldAux n f :=
-  Nat.recOn
-    (motive := fun n => ∀ {K : Type u} [Field K],
-      ∀ {f : K[X]}, SplittingFieldAux n f)
-    n (fun {K} _ _ => @One.one K _) fun _ ih _ _ _ => ih
+@[simp]
+protected def one : ∀ (n : ℕ) {K : Type u} [Field K], ∀ {f : K[X]}, SplittingFieldAux n f
+  | 0, K, _ => (1 : K)
+  | n+1, _, _ => SplittingFieldAux.one n
 #align polynomial.splitting_field_aux.one Polynomial.SplittingFieldAux.one
 
 /-- Splitting fields have a multiplication. -/
-protected def mul (n : ℕ) :
+@[simp]
+protected def mul : ∀ (n : ℕ),
     ∀ {K : Type u} [Field K],
-      ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f → SplittingFieldAux n f :=
-  Nat.recOn
-    (motive := fun n => ∀ {K : Type u} [Field K],
-      ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f → SplittingFieldAux n f)
-    n (fun {K} _ _ => @Mul.mul K _) fun _ ih _ _ _ => ih
+      ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f → SplittingFieldAux n f
+  | 0, K, _ => @Mul.mul K _
+  | n+1, _, _ => SplittingFieldAux.mul n
 #align polynomial.splitting_field_aux.mul Polynomial.SplittingFieldAux.mul
 
 /-- Splitting fields have a power operation. -/
+@[simp]
 protected def npow (n : ℕ) :
     ∀ {K : Type u} [Field K], ∀ {f : K[X]}, ℕ → SplittingFieldAux n f → SplittingFieldAux n f :=
   Nat.recOn
@@ -252,35 +237,32 @@ protected def npow (n : ℕ) :
 #align polynomial.splitting_field_aux.npow Polynomial.SplittingFieldAux.npow
 
 /-- Splitting fields have an injection from the base field. -/
-protected def mk (n : ℕ) : ∀ {K : Type u} [Field K], ∀ {f : K[X]}, K → SplittingFieldAux n f :=
-  Nat.recOn
-    (motive := fun n => ∀ {K : Type u} [Field K],
-      ∀ {f : K[X]}, K → SplittingFieldAux n f)
-    n (fun {_} _ _ => id) fun _ ih _ _ _ => ih ∘ (↑)
+protected def mk : ∀ (n : ℕ) {K : Type u} [Field K], ∀ {f : K[X]}, K → SplittingFieldAux n f
+  | 0, K, _, _ => @id K
+  | n+1, _, _, _ => SplittingFieldAux.mk n ∘ (↑)
 #align polynomial.splitting_field_aux.mk Polynomial.SplittingFieldAux.mk
 
 -- note that `coe` goes from `K → adjoin_root f`, and then `ih` lifts to the full splitting field
 -- (as we generalise over all fields in this recursion!)
 /-- Splitting fields have an inverse. -/
-protected def inv (n : ℕ) :
-    ∀ {K : Type u} [Field K], ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f :=
-  Nat.recOn
-    (motive := fun n => ∀ {K : Type u} [Field K],
-      ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f)
-    n (fun {K} _ _ => @Inv.inv K _) fun _ ih _ _ _ => ih
+@[simp]
+protected def inv : ∀ (n : ℕ),
+    ∀ {K : Type u} [Field K], ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f
+  | 0, K, _ => @Inv.inv K _
+  | n+1, _, _ => SplittingFieldAux.inv n
 #align polynomial.splitting_field_aux.inv Polynomial.SplittingFieldAux.inv
 
 /-- Splitting fields have a division. -/
-protected def div (n : ℕ) :
+@[simp]
+protected def div : ∀ (n : ℕ),
     ∀ {K : Type u} [Field K],
-      ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f → SplittingFieldAux n f :=
-  Nat.recOn
-    (motive := fun n => ∀ {K : Type u} [Field K],
-      ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f → SplittingFieldAux n f)
-    n (fun {K} _ _ => @Div.div K _) fun _ ih _ _ _ => ih
+      ∀ {f : K[X]}, SplittingFieldAux n f → SplittingFieldAux n f → SplittingFieldAux n f
+  | 0, K, _ => @Div.div K _
+  | n+1, _, _ => SplittingFieldAux.div n
 #align polynomial.splitting_field_aux.div Polynomial.SplittingFieldAux.div
 
 /-- Splitting fields have powers by integers. -/
+@[simp]
 protected def zpow (n : ℕ) :
     ∀ {K : Type u} [Field K], ∀ {f : K[X]}, ℤ → SplittingFieldAux n f → SplittingFieldAux n f :=
   Nat.recOn
@@ -289,32 +271,44 @@ protected def zpow (n : ℕ) :
     n (fun {K} _ _ n x => @Pow.pow K _ _ x n) fun _ ih _ _ _ => ih
 #align polynomial.splitting_field_aux.zpow Polynomial.SplittingFieldAux.zpow
 
+set_option maxHeartbeats 0 in
 -- I'm not sure why these two lemmas break, but inlining them seems to not work.
 -- Porting note: original proof was `Nat.recOn n (fun K fK f => zero_nsmul) fun n ih K fK f => ih`
 private theorem nsmul_zero (n : ℕ) :
     ∀ {K : Type u} [Field K],
-      ∀ {f : K[X]} (x : SplittingFieldAux n f), (0 : ℕ) • x = SplittingFieldAux.zero n := by
+      ∀ {f : K[X]} (x : SplittingFieldAux n f),
+      SplittingFieldAux.smul n ℕ 0 x = SplittingFieldAux.zero n := by
   induction' n with _ hn
   · intro K fK f
     change ∀ (x : K), (0 : ℕ) • x = SplittingFieldAux.zero 0
     exact zero_nsmul
-  · intro K fK f
-    apply hn
-
-set_option maxHeartbeats 300000 in
+  · intro K fK f x
+    dsimp at *
+    have := hn x
+    rw [← this]
+set_option pp.explicit true
+set_option maxHeartbeats 500000 in
 -- Porting note: original proof was
 -- `Nat.recOn n (fun K fK f n x => succ_nsmul x n) fun n ih K fK f => ih`
 private theorem nsmul_succ (n : ℕ) :
     ∀ {K : Type u} [Field K],
       ∀ {f : K[X]} (k : ℕ) (x : SplittingFieldAux n f),
-        (k + 1) • x = SplittingFieldAux.add n x (k • x) := by
+        SplittingFieldAux.smul n ℕ (k + 1) x = SplittingFieldAux.add n x
+          (SplittingFieldAux.smul n ℕ k x) := by
   induction' n with _ hn
   · intro K fK _ k
     change ∀ (x : K), (k + 1) • x = x + (k • x)
     intro x
     exact succ_nsmul x _
-  · intro K fK f
-    apply hn
+  · intro K fK f k x
+    dsimp at x
+    dsimp at *
+    have := hn k x
+    convert this
+    rfl
+
+
+#exit
 
 set_option maxHeartbeats 3500000 in
 instance field (n : ℕ) {K : Type u} [Field K] {f : K[X]} : Field (SplittingFieldAux n f) := by
