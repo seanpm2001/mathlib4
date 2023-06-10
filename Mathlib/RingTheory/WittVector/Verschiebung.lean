@@ -189,5 +189,6 @@ theorem bind₁_verschiebungPoly_wittPolynomial (n : ℕ) :
       _ = _ := by rw [ghostComponent_verschiebung]; rfl
 #align witt_vector.bind₁_verschiebung_poly_witt_polynomial WittVector.bind₁_verschiebungPoly_wittPolynomial
 
+end  -- porting note: closes the `noncomputable section`
 
 end WittVector
