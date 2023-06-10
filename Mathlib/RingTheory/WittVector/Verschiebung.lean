@@ -109,6 +109,19 @@ theorem verschiebungFun_isPoly : IsPoly p fun R _Rcr => @verschiebungFun p R _Rc
 #align witt_vector.verschiebung_fun_is_poly WittVector.verschiebungFun_isPoly
 
 variable {p}
+set_option autoImplicit false
+instance verschiebungFun_isPoly.comp₂_i (p : ℕ)
+    (f : ∀ ⦃R⦄ [CommRing R], WittVector p R → WittVector p R → WittVector p R) [hf : IsPoly₂ p f] :
+    IsPoly₂ p (λ R (_Rcr : CommRing R) (x y : WittVector p R) =>
+      (λ R (_Rcr : CommRing R) => verschiebungFun) R _Rcr (f x y)) :=
+(verschiebungFun_isPoly p).comp₂ hf
+universe u
+instance addIsPoly₂.comp₂_i {p : ℕ} [Fact p.Prime]
+    {f g : ∀ ⦃R⦄ [CommRing R], WittVector p R → WittVector p R}
+    [hf : IsPoly p f] [hg : IsPoly p g] :
+    IsPoly₂ p (∀ {{R : Type u}} [_Rcr : CommRing R] (x y : WittVector p R),
+      by apply @f R _Rcr x + @g R _Rcr  y) :=
+sorry
 
 /--
 `verschiebung x` shifts the coefficients of `x` up by one, by inserting 0 as the 0th coefficient.
@@ -121,7 +134,22 @@ noncomputable def verschiebung : 𝕎 R →+ 𝕎 R where
   map_zero' := by
     ext ⟨⟩ <;> rw [verschiebungFun_coeff] <;>
       simp only [if_true, eq_self_iff_true, zero_coeff, ite_self]
-  map_add' := by ghost_calc _ _; rintro ⟨⟩ <;> ghost_simp
+  map_add' := by
+    intros x y
+    dsimp
+    simp [verschiebungFun]
+    apply IsPoly₂.ext _ _ _ _ x y
+    refine @verschiebungFun_isPoly.comp₂_i ?_ ?_ ?_
+    exact addIsPoly₂
+    refine @addIsPoly₂.comp₂_i ?_ ?_ ?_ ?_ ?_ ?_
+
+    refine @verschiebungFun_isPoly.comp₂_i ?_ ?_ ?_
+
+    --ghost_calc _ _
+    rintro ⟨⟩
+    --. ghost_simp
+    --. ghost_simp
+
 #align witt_vector.verschiebung WittVector.verschiebung
 
 /-- `WittVector.verschiebung` is a polynomial function. -/
