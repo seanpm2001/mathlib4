@@ -90,6 +90,11 @@ instance Bundle.ContinuousLinearMap.addMonoidHomClass (x : B) :
   inferInstanceAs <| AddMonoidHomClass (E₁ x →SL[σ] E₂ x) (E₁ x) (E₂ x)
 #align bundle.continuous_linear_map.add_monoid_hom_class Bundle.ContinuousLinearMap.addMonoidHomClass
 
+@[ext] -- new theorem
+protected theorem Bundle.ContinuousLinearMap.ext {x : B}
+    {f g : Bundle.ContinuousLinearMap σ F₁ E₁ F₂ E₂ x} (h : ∀ y, f y = g y) : f = g :=
+  FunLike.ext _ _ h
+
 variable [∀ x, TopologicalAddGroup (E₂ x)]
 
 instance (x : B) : TopologicalSpace (Bundle.ContinuousLinearMap σ F₁ E₁ F₂ E₂ x) :=
