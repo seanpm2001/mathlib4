@@ -196,6 +196,18 @@ theorem op_norm_nonneg : 0 ≤ ‖f‖ :=
   le_csInf bounds_nonempty fun _ ⟨hx, _⟩ => hx
 #align continuous_linear_map.op_norm_nonneg ContinuousLinearMap.op_norm_nonneg
 
+section
+open Lean Meta Qq Function Mathlib Meta Positivity
+
+/-- Extension for the `positivity` tactic: the diameter of a set is always nonnegative. -/
+@[positivity Norm.norm _]
+def _root_Mathlib.Meta.Positivity.evalOpNorm : PositivityExt where eval {_ _} _zα _pα e := do
+  let .app _ s ← whnfR e | throwError "not an operator norm"
+  let p ← mkAppM ``op_norm_nonneg #[s]
+  pure (.nonnegative p)
+
+end
+
 /-- The fundamental property of the operator norm: `‖f x‖ ≤ ‖f‖ * ‖x‖`. -/
 theorem le_op_norm : ‖f x‖ ≤ ‖f‖ * ‖x‖ := by
   obtain ⟨C, _, hC⟩ := f.bound
@@ -212,11 +224,11 @@ theorem dist_le_op_norm (x y : E) : dist (f x) (f y) ≤ ‖f‖ * dist x y := b
 #align continuous_linear_map.dist_le_op_norm ContinuousLinearMap.dist_le_op_norm
 
 theorem le_op_norm_of_le {c : ℝ} {x} (h : ‖x‖ ≤ c) : ‖f x‖ ≤ ‖f‖ * c :=
-  le_trans (f.le_op_norm x) (mul_le_mul_of_nonneg_left h f.op_norm_nonneg)
+  le_trans (f.le_op_norm x) (by gcongr)
 #align continuous_linear_map.le_op_norm_of_le ContinuousLinearMap.le_op_norm_of_le
 
 theorem le_of_op_norm_le {c : ℝ} (h : ‖f‖ ≤ c) (x : E) : ‖f x‖ ≤ c * ‖x‖ :=
-  (f.le_op_norm x).trans (mul_le_mul_of_nonneg_right h (norm_nonneg x))
+  (f.le_op_norm x).trans (by gcongr)
 #align continuous_linear_map.le_of_op_norm_le ContinuousLinearMap.le_of_op_norm_le
 
 theorem ratio_le_op_norm : ‖f x‖ / ‖x‖ ≤ ‖f‖ :=
@@ -270,7 +282,7 @@ theorem op_norm_le_of_unit_norm [NormedSpace ℝ E] [NormedSpace ℝ F] {f : E �
 
 /-- The operator norm satisfies the triangle inequality. -/
 theorem op_norm_add_le : ‖f + g‖ ≤ ‖f‖ + ‖g‖ :=
-  (f + g).op_norm_le_bound (add_nonneg f.op_norm_nonneg g.op_norm_nonneg) fun x =>
+  (f + g).op_norm_le_bound (by positivity) fun x =>
     (norm_add_le_of_le (f.le_op_norm x) (g.le_op_norm x)).trans_eq (add_mul _ _ _).symm
 #align continuous_linear_map.op_norm_add_le ContinuousLinearMap.op_norm_add_le
 
@@ -298,9 +310,10 @@ theorem norm_id_of_nontrivial_seminorm (h : ∃ x : E, ‖x‖ ≠ 0) : ‖id �
 
 theorem op_norm_smul_le {𝕜' : Type _} [NormedField 𝕜'] [NormedSpace 𝕜' F] [SMulCommClass 𝕜₂ 𝕜' F]
     (c : 𝕜') (f : E →SL[σ₁₂] F) : ‖c • f‖ ≤ ‖c‖ * ‖f‖ :=
-  (c • f).op_norm_le_bound (mul_nonneg (norm_nonneg _) (op_norm_nonneg _)) fun _ => by
+  (c • f).op_norm_le_bound (by positivity) fun _ => by
     erw [norm_smul, mul_assoc]
-    exact mul_le_mul_of_nonneg_left (le_op_norm _ _) (norm_nonneg _)
+    gcongr
+    apply le_op_norm
 #align continuous_linear_map.op_norm_smul_le ContinuousLinearMap.op_norm_smul_le
 
 /-- Continuous linear maps themselves form a seminormed space with respect to
