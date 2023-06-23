@@ -90,10 +90,38 @@ instance Bundle.ContinuousLinearMap.addMonoidHomClass (x : B) :
   inferInstanceAs <| AddMonoidHomClass (E₁ x →SL[σ] E₂ x) (E₁ x) (E₂ x)
 #align bundle.continuous_linear_map.add_monoid_hom_class Bundle.ContinuousLinearMap.addMonoidHomClass
 
+section
+
+variable {σ E₁ F₁ E₂ F₂}
+
 @[ext] -- new theorem
 protected theorem Bundle.ContinuousLinearMap.ext {x : B}
     {f g : Bundle.ContinuousLinearMap σ F₁ E₁ F₂ E₂ x} (h : ∀ y, f y = g y) : f = g :=
   FunLike.ext _ _ h
+
+/-- Reinterpret a `Bundle.ContinuousLinearMap` as a `ContinuousLinearMap`. While this is the
+identity function, it helps Lean 4 `simp` apply correct lemmas. -/
+def Bundle.ContinuousLinearMap.toCLM (f : Bundle.ContinuousLinearMap σ F₁ E₁ F₂ E₂ x) :
+    E₁ x →SL[σ] E₂ x :=
+  f
+
+@[simp]
+theorem Bundle.ContinuousLinearMap.toCLM_apply (f : Bundle.ContinuousLinearMap σ F₁ E₁ F₂ E₂ x) :
+    (f.toCLM : E₁ x → E₂ x) = f :=
+  rfl
+
+/-- Reinterpret a `ContinuousLinearMap` as a `Bundle.ContinuousLinearMap`. While this is the
+identity function, it helps Lean 4 `simp` apply correct lemmas. -/
+def ContinuousLinearMap.toBundle (f : E₁ x →SL[σ] E₂ x) :
+    Bundle.ContinuousLinearMap σ F₁ E₁ F₂ E₂ x :=
+  f
+
+@[simp]
+theorem ContinuousLinearMap.toBundle_apply (f : E₁ x →SL[σ] E₂ x) :
+    ⇑(f.toBundle : Bundle.ContinuousLinearMap σ F₁ E₁ F₂ E₂ x) = f :=
+  rfl
+
+end
 
 variable [∀ x, TopologicalAddGroup (E₂ x)]
 
@@ -170,10 +198,8 @@ trivialization, after the bundle of continuous semilinear maps is equipped with 
 topological vector bundle structure. -/
 def continuousLinearMap :
     Pretrivialization (F₁ →SL[σ] F₂) (π (Bundle.ContinuousLinearMap σ F₁ E₁ F₂ E₂)) where
-  toFun p := ⟨p.1, ContinuousLinearMap.comp (e₂.continuousLinearMapAt 𝕜₂ p.1)
-    (p.2.comp (e₁.symmL 𝕜₁ p.1 : F₁ →L[𝕜₁] E₁ p.1) : F₁ →SL[σ] E₂ p.1)⟩
-  invFun p := ⟨p.1, ContinuousLinearMap.comp (e₂.symmL 𝕜₂ p.1)
-    (p.2.comp (e₁.continuousLinearMapAt 𝕜₁ p.1 : E₁ p.1 →L[𝕜₁] F₁) : E₁ p.1 →SL[σ] F₂)⟩
+  toFun p := ⟨p.1, (e₂.continuousLinearMapAt 𝕜₂ p.1).comp (p.2.toCLM.comp (e₁.symmL 𝕜₁ p.1))⟩
+  invFun p := ⟨p.1, ((e₂.symmL 𝕜₂ p.1).comp (p.2.comp (e₁.continuousLinearMapAt 𝕜₁ p.1))).toBundle⟩
   source := Bundle.TotalSpace.proj ⁻¹' (e₁.baseSet ∩ e₂.baseSet)
   target := (e₁.baseSet ∩ e₂.baseSet) ×ˢ Set.univ
   map_source' := fun ⟨x, L⟩ h => ⟨h, Set.mem_univ _⟩
@@ -181,7 +207,8 @@ def continuousLinearMap :
   left_inv' := fun ⟨x, L⟩ ⟨h₁, h₂⟩ => by
     refine congr_arg (Sigma.mk _) ?_
     ext v
-    simp only [comp_apply, Trivialization.symmL_continuousLinearMapAt, h₁, h₂]
+    dsimp
+    simp [Trivialization.symmL_continuousLinearMapAt, h₁, h₂]
   right_inv' := fun ⟨x, f⟩ ⟨⟨h₁, h₂⟩, _⟩ => by
     simp_rw [Prod.mk.inj_iff, eq_self_iff_true, true_and_iff]
     ext v
@@ -191,7 +218,7 @@ def continuousLinearMap :
   open_baseSet := e₁.open_baseSet.inter e₂.open_baseSet
   source_eq := rfl
   target_eq := rfl
-  proj_toFun := fun ⟨x, f⟩ h => rfl
+  proj_toFun := _ -- fun ⟨x, f⟩ h => rfl
 #align pretrivialization.continuous_linear_map Pretrivialization.continuousLinearMap
 
 instance continuousLinearMap.isLinear [∀ x, ContinuousAdd (E₂ x)] [∀ x, ContinuousSMul 𝕜₂ (E₂ x)] :
