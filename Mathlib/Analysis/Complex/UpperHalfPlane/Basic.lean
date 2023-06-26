@@ -15,6 +15,8 @@ import Mathlib.GroupTheory.GroupAction.Defs
 import Mathlib.LinearAlgebra.Matrix.GeneralLinearGroup
 import Mathlib.Tactic.LinearCombination
 
+import Mathlib.Binop2
+
 /-!
 # The upper half plane and its automorphisms
 
@@ -270,9 +272,11 @@ instance SLOnGLPos : SMul SL(2, ℤ) GL(2, ℝ)⁺ :=
   ⟨fun s g => s * g⟩
 #align upper_half_plane.SL_on_GL_pos UpperHalfPlane.SLOnGLPos
 
+macro_rules | `($x • $y) => `(leftact% HSMul.hSMul $x $y)
+
 -- Porting note: writing the `SMul.smul` explicitly is terrible. Needs a fix
 theorem SLOnGLPos_smul_apply (s : SL(2, ℤ)) (g : GL(2, ℝ)⁺) (z : ℍ) :
-    (s • g) • z = SMul.smul ((s : GL(2, ℝ)⁺) * g) z :=
+    (s • g) • z = ((s : GL(2, ℝ)⁺) * g) • z :=
   rfl
 #align upper_half_plane.SL_on_GL_pos_smul_apply UpperHalfPlane.SLOnGLPos_smul_apply
 
