@@ -79,26 +79,42 @@ theorem closure_induction' {s : Set R} {p : closure s → Prop} (a : closure s)
 
 end Subring
 
+section SubgroupBasic
+
+-- these should be lemmas, but `SMulMemClass` is stupidly in `Type`
+
+/-- Not an instance because `R` is an `outParam` in `SMulMemClass S R M`. -/
+def AddSubmonoidClass.nsmulMemClass {M A : Type _} [AddMonoid M] [SetLike A M]
+    [AddSubmonoidClass A M] : SMulMemClass A ℕ M where
+  smul_mem n _x hx := nsmul_mem hx n
+
+/-- Not an instance because `R` is an `outParam` in `SMulMemClass S R M`. -/
+def AddSubgroupClass.zsmulMemClass {M A : Type _} [SubNegMonoid M] [SetLike A M]
+    [AddSubgroupClass A M] : SMulMemClass A ℤ M where
+  smul_mem n _x hx := zsmul_mem hx n
+
+end SubgroupBasic
 
 section Generic
 
 variable {R S A : Type _} [CommSemiring R] [Semiring A] [Algebra R A] [SetLike S A]
   [hSA : NonUnitalSubsemiringClass S A] [hSRA : SMulMemClass S R A] (s : S)
 
+instance (priority := 75) NonUnitalSubalgebraClass.instIsScalarTower : IsScalarTower R s s where
+  smul_assoc r x y := Subtype.ext <| smul_assoc r (x : A) (y : A)
+#align non_unital_subalgebra_class.is_scalar_tower NonUnitalSubalgebraClass.instIsScalarTower
 
-instance NonUnitalSubalgebraClass.isScalarTower : IsScalarTower R s s
-    where smul_assoc r x y := Subtype.ext <| smul_assoc r (x : A) (y : A)
-#align non_unital_subalgebra_class.is_scalar_tower NonUnitalSubalgebraClass.isScalarTower
+instance (priority := 75) NonUnitalSubalgebraClass.instSMulCommClass : SMulCommClass R s s where
+  smul_comm r x y := Subtype.ext <| smul_comm r (x : A) (y : A)
+#align non_unital_subalgebra_class.smul_comm_class NonUnitalSubalgebraClass.instSMulCommClass
 
-instance NonUnitalSubalgebraClass.sMulCommClass : SMulCommClass R s s
-    where smul_comm r x y := Subtype.ext <| smul_comm r (x : A) (y : A)
-#align non_unital_subalgebra_class.smul_comm_class NonUnitalSubalgebraClass.sMulCommClass
+--attribute [local instance] NonUnitalSubalgebraClass.instIsScalarTower NonUnitalSubalgebraClass.instSMulCommClass
 
 /-- The natural `R`-algebra homomorphism from the unitization of a non-unital subalgebra to
 its `algebra.adjoin`. -/
 def NonUnitalSubalgebra.unitization : Unitization R s →ₐ[R] Algebra.adjoin R (s : Set A) :=
-  Unitization.starLift
-    { toFun := fun x : s => (⟨x, Algebra.subset_adjoin x.Prop⟩ : Algebra.adjoin R (s : Set A))
+  Unitization.lift
+    { toFun := fun x : s => (⟨x, Algebra.subset_adjoin x.prop⟩ : Algebra.adjoin R (s : Set A))
       map_smul' := fun (_ : R) _ => rfl
       map_zero' := rfl
       map_add' := fun _ _ => rfl
@@ -113,9 +129,8 @@ theorem NonUnitalSubalgebra.unitization_apply_coe (x : Unitization R s) :
 #align non_unital_subalgebra.unitization_apply_coe NonUnitalSubalgebra.unitization_apply_coe
 
 theorem NonUnitalSubalgebra.unitization_surjective :
-    Function.Surjective (NonUnitalSubalgebra.unitization s) :=
-  by
-  refine' Algebra.adjoin_induction' _ _ _ _
+    Function.Surjective (NonUnitalSubalgebra.unitization s) := by
+  apply Algebra.adjoin_induction'
   · refine' fun x hx => ⟨(0, ⟨x, hx⟩), Subtype.ext _⟩
     simp only [NonUnitalSubalgebra.unitization_apply_coe, Subtype.coe_mk]
     change (algebraMap R { x // x ∈ Algebra.adjoin R (s : Set A) } 0 : A) + x = x
@@ -127,15 +142,16 @@ theorem NonUnitalSubalgebra.unitization_surjective :
     exact ⟨x * y, map_mul _ _ _⟩
 #align non_unital_subalgebra.unitization_surjective NonUnitalSubalgebra.unitization_surjective
 
+variable {R S A : Type _} [Field R] [Ring A] [Algebra R A]
+    [SetLike S A] [hSA : NonUnitalSubringClass S A] [hSRA : SMulMemClass S R A] (s : S)
+
 theorem NonUnitalSubalgebra.unitization_injective {R S A : Type _} [Field R] [Ring A] [Algebra R A]
     [SetLike S A] [hSA : NonUnitalSubringClass S A] [hSRA : SMulMemClass S R A] (s : S)
-    (h1 : (1 : A) ∉ s) : Function.Injective (NonUnitalSubalgebra.unitization s) :=
-  by
-  rw [RingHom.injective_iff_ker_eq_bot, RingHom.ker_eq_bot_iff_eq_zero]
-  refine' fun x hx => _
+    (h1 : (1 : A) ∉ s) : Function.Injective (NonUnitalSubalgebra.unitization s) := by
+  refine' (injective_iff_map_eq_zero _).mpr fun x hx => _
   induction' x using Unitization.ind with r a
   rw [map_add] at hx
-  have hx' := congr_arg (coe : _ → A) hx
+  have hx' := congr_arg (Subtype.val : _ → A) hx
   simp only [NonUnitalSubalgebra.unitization_apply_coe, Unitization.fst_inl,
     Subalgebra.coe_algebraMap, Unitization.snd_inl, ZeroMemClass.coe_zero, add_zero, map_neg,
     AddSubgroupClass.coe_neg, Unitization.fst_inr, map_zero, Unitization.snd_inr,
@@ -155,7 +171,7 @@ theorem NonUnitalSubalgebra.unitization_injective {R S A : Type _} [Field R] [Ri
 /-- If a `non_unital_subalgebra` over a field does not contain `1`, then its unitization is
 isomorphic to its `algebra.adjoin`. -/
 noncomputable def NonUnitalSubalgebra.unitizationAlgEquiv {R S A : Type _} [Field R] [Ring A]
-    [Algebra R A] [SetLike S A] [hSA : NonUnitalSubringClass S A] [hSRA : SMulMemClass S R A]
+    [Algebra R A] [SetLike S A] [NonUnitalSubringClass S A] [SMulMemClass S R A]
     (s : S) (h1 : (1 : A) ∉ s) : Unitization R s ≃ₐ[R] Algebra.adjoin R (s : Set A) :=
   AlgEquiv.ofBijective (NonUnitalSubalgebra.unitization s)
     ⟨NonUnitalSubalgebra.unitization_injective s h1, NonUnitalSubalgebra.unitization_surjective s⟩
@@ -189,8 +205,7 @@ def NonUnitalSubsemiring.toSubsemiring (S : NonUnitalSubsemiring R) (h1 : (1 : R
 #align non_unital_subsemiring.to_subsemiring NonUnitalSubsemiring.toSubsemiring
 
 theorem Subsemiring.toNonUnitalSubsemiring_toSubsemiring (S : Subsemiring R) :
-    S.toNonUnitalSubsemiring.toSubsemiring S.one_mem = S :=
-  Subsemiring.casesOn S fun _ _ _ _ _ => rfl
+    S.toNonUnitalSubsemiring.toSubsemiring S.one_mem = S := by cases S; rfl
 #align subsemiring.to_non_unital_subsemiring_to_subsemiring Subsemiring.toNonUnitalSubsemiring_toSubsemiring
 
 theorem NonUnitalSubsemiring.toSubsemiring_toNonUnitalSubsemiring (S : NonUnitalSubsemiring R)
@@ -211,10 +226,14 @@ def Subsemiring.closureEquivAdjoinNat {R : Type _} [Semiring R] (s : Set R) :
     Subtype.map id fun r hr =>
       Algebra.adjoin_induction hr Subsemiring.subset_closure (natCast_mem _) (fun _ _ => add_mem)
         fun _ _ => mul_mem
-  left_inv _ := Subtype.ext rfl
-  right_inv _ := Subtype.ext rfl
-  map_mul' _ _ := Subtype.ext rfl
-  map_add' _ _ := Subtype.ext rfl
+  -- Note: `Subtype.ext rfl` proves all of these, but, depressingly, it's too slow.
+  left_inv _ := Subtype.ext <| by simp only [Subtype.map_coe, id_eq]
+  right_inv _ := Subtype.ext <| by simp only [Subtype.map_coe, id_eq]
+  map_mul' _ _ := Subtype.ext <| by
+    simp only [Subtype.map_coe, Submonoid.coe_mul, coe_toSubmonoid, id_eq,
+      Subalgebra.coe_toSubsemiring]
+  map_add' _ _ := Subtype.ext <| by
+    simp only [Subtype.map_coe, coe_add, id_eq, Subalgebra.coe_toSubsemiring]
   commutes' _ := Subtype.ext rfl
 #align subsemiring.closure_equiv_adjoin_nat Subsemiring.closureEquivAdjoinNat
 
@@ -223,21 +242,19 @@ its `subsemiring.closure`. -/
 def NonUnitalSubsemiring.unitization {R : Type _} [Semiring R] (S : NonUnitalSubsemiring R) :
     Unitization ℕ S →ₐ[ℕ] Subsemiring.closure (S : Set R) :=
   AlgEquiv.refl.arrowCongr (Subsemiring.closureEquivAdjoinNat (S : Set R)).symm <|
-    NonUnitalSubalgebra.unitization S
+    NonUnitalSubalgebra.unitization (hSRA := AddSubmonoidClass.nsmulMemClass) S
 #align non_unital_subsemiring.unitization NonUnitalSubsemiring.unitization
 
 @[simp]
 theorem NonUnitalSubsemiring.unitization_apply_coe {R : Type _} [Semiring R]
     (S : NonUnitalSubsemiring R) (x : Unitization ℕ S) :
-    (S.Unitization x : R) = algebraMap ℕ (Subsemiring.closure (S : Set R)) x.fst + x.snd :=
+    (S.unitization x : R) = algebraMap ℕ (Subsemiring.closure (S : Set R)) x.fst + x.snd :=
   rfl
 #align non_unital_subsemiring.unitization_apply_coe NonUnitalSubsemiring.unitization_apply_coe
 
 theorem NonUnitalSubsemiring.unitization_surjective {R : Type _} [Semiring R]
-    (S : NonUnitalSubsemiring R) : Function.Surjective S.Unitization :=
-  by
-  intro x
-  refine' Subsemiring.closure_induction' x _ ⟨0, map_zero _⟩ ⟨1, map_one _⟩ _ _
+    (S : NonUnitalSubsemiring R) : Function.Surjective S.unitization := by
+  refine' fun x => Subsemiring.closure_induction' x _ ⟨0, map_zero _⟩ ⟨1, map_one _⟩ _ _
   · refine' fun x hx => ⟨(0, ⟨x, hx⟩), Subtype.ext _⟩
     simp only [NonUnitalSubsemiring.unitization_apply_coe, Subtype.coe_mk, Unitization.fst,
       Unitization.snd, map_zero, Subsemiring.coe_zero, zero_add]
@@ -273,8 +290,7 @@ def NonUnitalSubring.toSubring (S : NonUnitalSubring R) (h1 : (1 : R) ∈ S) : S
 #align non_unital_subring.to_subring NonUnitalSubring.toSubring
 
 theorem Subring.toNonUnitalSubring_toSubring (S : Subring R) :
-    S.toNonUnitalSubring.toSubring S.one_mem = S :=
-  Subring.casesOn S fun _ _ _ _ _ _ => rfl
+    S.toNonUnitalSubring.toSubring S.one_mem = S := by cases S; rfl
 #align subring.to_non_unital_subring_to_subring Subring.toNonUnitalSubring_toSubring
 
 theorem NonUnitalSubring.toSubring_toNonUnitalSubring (S : NonUnitalSubring R) (h1 : (1 : R) ∈ S) :
@@ -283,11 +299,10 @@ theorem NonUnitalSubring.toSubring_toNonUnitalSubring (S : NonUnitalSubring R) (
 
 -- why don't we have this theorem?
 theorem int_cast_mem {S : Type _} {R : Type _} [AddGroupWithOne R] [SetLike S R] (s : S)
-    [AddSubmonoidWithOneClass S R] [NegMemClass S R] (n : ℤ) : (n : R) ∈ s :=
-  by
-  cases n
-  simpa only [Int.cast_ofNat, Int.ofNat_eq_coe] using natCast_mem s n
-  simpa only [Int.cast_negSucc] using neg_mem (natCast_mem s (n + 1))
+    [AddSubmonoidWithOneClass S R] [NegMemClass S R] (n : ℤ) : (n : R) ∈ s := by
+  cases n with
+  | ofNat n => simpa only [Int.cast_ofNat, Int.ofNat_eq_coe] using natCast_mem s n
+  | negSucc n => simpa only [Int.cast_negSucc] using neg_mem (natCast_mem s (n + 1))
 #align int_cast_mem int_cast_mem
 
 /-- The `ℤ`-algebra equivalence between `subring.closure s` and `algebra.adjoin ℤ s` given by
@@ -295,11 +310,11 @@ the identity map. -/
 def Subring.closureEquivAdjoinInt (s : Set R) : Subring.closure s ≃ₐ[ℤ] Algebra.adjoin ℤ s
     where
   toFun :=
-    Subtype.map id fun r hr =>
+    Subtype.map id fun _r hr =>
       Subring.closure_induction hr Algebra.subset_adjoin (zero_mem _) (one_mem _)
         (fun _ _ => add_mem) (fun _ => neg_mem) fun _ _ => mul_mem
   invFun :=
-    Subtype.map id fun r hr =>
+    Subtype.map id fun _r hr =>
       Algebra.adjoin_induction hr Subring.subset_closure (int_cast_mem _) (fun _ _ => add_mem)
         fun _ _ => mul_mem
   left_inv _ := Subtype.ext rfl
@@ -311,25 +326,21 @@ def Subring.closureEquivAdjoinInt (s : Set R) : Subring.closure s ≃ₐ[ℤ] Al
 
 /-- The natural `ℤ`-algebra homomorphism from the unitization of a non-unital subring to
 its `subring.closure`. -/
-def NonUnitalSubring.unitization
-    (S : NonUnitalSubring R) :-- (h : ∀ n : ℕ, (n : R) ∉ S) :
-        Unitization
-        ℤ S →ₐ[ℤ]
-      Subring.closure (S : Set R) :=
+def NonUnitalSubring.unitization (S : NonUnitalSubring R) :
+    Unitization ℤ S →ₐ[ℤ] Subring.closure (S : Set R) :=
   AlgEquiv.refl.arrowCongr (Subring.closureEquivAdjoinInt (S : Set R)).symm <|
-    NonUnitalSubalgebra.unitization S
+    NonUnitalSubalgebra.unitization (hSRA := AddSubgroupClass.zsmulMemClass) S
 #align non_unital_subring.unitization NonUnitalSubring.unitization
 
 @[simp]
 theorem NonUnitalSubring.unitization_apply_coe (S : NonUnitalSubring R) (x : Unitization ℤ S) :
-    (S.Unitization x : R) = algebraMap ℤ (Subring.closure (S : Set R)) x.fst + x.snd :=
+    (S.unitization x : R) = algebraMap ℤ (Subring.closure (S : Set R)) x.fst + x.snd :=
   rfl
 #align non_unital_subring.unitization_apply_coe NonUnitalSubring.unitization_apply_coe
 
 theorem NonUnitalSubring.unitization_surjective (S : NonUnitalSubring R) :
-    Function.Surjective S.Unitization := by
-  intro x
-  refine' Subring.closure_induction' x _ ⟨0, map_zero _⟩ ⟨1, map_one _⟩ _ _ _
+    Function.Surjective S.unitization := by
+  refine' fun x => Subring.closure_induction' x _ ⟨0, map_zero _⟩ ⟨1, map_one _⟩ _ _ _
   · refine' fun x hx => ⟨(0, ⟨x, hx⟩), Subtype.ext _⟩
     simp only [NonUnitalSubring.unitization_apply_coe, Subtype.coe_mk, Unitization.fst,
       Unitization.snd, map_zero, Subring.coe_zero, zero_add]
@@ -354,7 +365,7 @@ variable {R A : Type _} [CommSemiring R] [Semiring A] [Algebra R A]
 def Subalgebra.toNonUnitalSubalgebra (S : Subalgebra R A) : NonUnitalSubalgebra R A :=
   { S with
     carrier := S.carrier
-    smul_mem' := fun r x hx => S.smul_mem hx r }
+    smul_mem' := fun r _x hx => S.smul_mem hx r }
 #align subalgebra.to_non_unital_subalgebra Subalgebra.toNonUnitalSubalgebra
 
 theorem Subalgebra.one_mem_toNonUnitalSubalgebra (S : Subalgebra R A) :
@@ -369,12 +380,11 @@ def NonUnitalSubalgebra.toSubalgebra (S : NonUnitalSubalgebra R A) (h1 : (1 : A)
     carrier := S.carrier
     one_mem' := h1
     algebraMap_mem' := fun r =>
-      (@Algebra.algebraMap_eq_smul_one R A _ _ _ r).symm ▸ S.smul_mem h1 r }
+      (Algebra.algebraMap_eq_smul_one (R := R) (A := A) r).symm ▸ SMulMemClass.smul_mem r h1 }
 #align non_unital_subalgebra.to_subalgebra NonUnitalSubalgebra.toSubalgebra
 
 theorem Subalgebra.toNonUnitalSubalgebra_toSubalgebra (S : Subalgebra R A) :
-    S.toNonUnitalSubalgebra.toSubalgebra S.one_mem = S :=
-  Subalgebra.casesOn S fun _ _ _ _ _ _ => rfl
+    S.toNonUnitalSubalgebra.toSubalgebra S.one_mem = S := by cases S; rfl
 #align subalgebra.to_non_unital_subalgebra_to_subalgebra Subalgebra.toNonUnitalSubalgebra_toSubalgebra
 
 theorem NonUnitalSubalgebra.toSubalgebra_toNonUnitalSubalgebra (S : NonUnitalSubalgebra R A)
@@ -383,57 +393,6 @@ theorem NonUnitalSubalgebra.toSubalgebra_toNonUnitalSubalgebra (S : NonUnitalSub
 #align non_unital_subalgebra.to_subalgebra_to_non_unital_subalgebra NonUnitalSubalgebra.toSubalgebra_toNonUnitalSubalgebra
 
 end Subalgebra
-
-namespace Unitization
-
-section StarAlgHom
-
-variable {S R A : Type _} [CommSemiring S] [CommSemiring R] [StarRing R] [NonUnitalSemiring A]
-  [StarRing A] [Module R A] [SMulCommClass R A A] [IsScalarTower R A A] [StarModule R A]
-  {C : Type _} [Semiring C] [StarRing C] [Algebra R C] [StarModule R C]
-
-/-- The coercion from a non-unital `R`-algebra `A` to its unitization `unitization R A`
-realized as a non-unital algebra homomorphism. -/
-@[simps]
-def coeNonUnitalStarAlgHom (R A : Type _) [CommSemiring R] [StarAddMonoid R] [NonUnitalSemiring A]
-    [Star A] [Module R A] : A →⋆ₙₐ[R] Unitization R A
-    where
-  toFun := coe
-  map_smul' := inr_smul R
-  map_zero' := inr_zero R
-  map_add' := inr_add R
-  map_mul' := inr_mul R
-  map_star' := inr_star
-#align unitization.coe_non_unital_star_alg_hom Unitization.coeNonUnitalStarAlgHom
-
-/-- Non-unital star algebra homomorphisms from `A` into a unital star `R`-algebra `C` lift uniquely
-to `unitization R A →⋆ₐ[R] C`. This is the universal property of the unitization. -/
-@[simps apply_apply]
-def starLift : (A →⋆ₙₐ[R] C) ≃ (Unitization R A →⋆ₐ[R] C)
-    where
-  toFun φ :=
-    {
-      Unitization.lift'
-        φ.toNonUnitalAlgHom with
-      toFun := Unitization.lift' φ.toNonUnitalAlgHom
-      map_star' := fun x => by
-        induction x using Unitization.ind
-        simp only [star_add, lift'_apply_apply, fst_add, fst_star, fst_inl, fst_coe, star_zero,
-          add_zero, snd_add, snd_star, snd_inl, snd_coe, zero_add,
-          NonUnitalStarAlgHom.coe_toNonUnitalAlgHom, map_star, algebraMap_star_comm] }
-  invFun φ := φ.toNonUnitalStarAlgHom.comp (coeNonUnitalStarAlgHom R A)
-  left_inv φ := by ext; simp
-  right_inv φ := bar (by simp)
-#align unitization.star_lift Unitization.starLift
-
-theorem starLift_symm_apply (φ : Unitization R A →⋆ₐ[R] C) (a : A) :
-    Unitization.starLift.symm φ a = φ a :=
-  rfl
-#align unitization.star_lift_symm_apply Unitization.starLift_symm_apply
-
-end StarAlgHom
-
-end Unitization
 
 section StarSubalgebra
 
@@ -450,7 +409,7 @@ def StarSubalgebra.toNonUnitalStarSubalgebra (S : StarSubalgebra R A) :
     NonUnitalStarSubalgebra R A :=
   { S with
     carrier := S.carrier
-    smul_mem' := fun r x hx => S.smul_mem hx r }
+    smul_mem' := fun r _x hx => S.smul_mem hx r }
 #align star_subalgebra.to_non_unital_star_subalgebra StarSubalgebra.toNonUnitalStarSubalgebra
 
 theorem StarSubalgebra.one_mem_toNonUnitalStarSubalgebra (S : StarSubalgebra R A) :
@@ -458,33 +417,33 @@ theorem StarSubalgebra.one_mem_toNonUnitalStarSubalgebra (S : StarSubalgebra R A
   S.one_mem'
 #align star_subalgebra.one_mem_to_non_unital_star_subalgebra StarSubalgebra.one_mem_toNonUnitalStarSubalgebra
 
-/-- Turn a non-unital star_subalgebra containing `1` into a star_subalgebra. -/
+/-- Turn a non-unital star subalgebra containing `1` into a `star_subalgebra`. -/
 def NonUnitalStarSubalgebra.toStarSubalgebra (S : NonUnitalStarSubalgebra R A) (h1 : (1 : A) ∈ S) :
     StarSubalgebra R A :=
   { S with
     carrier := S.carrier
     one_mem' := h1
     algebraMap_mem' := fun r =>
-      (@Algebra.algebraMap_eq_smul_one R A _ _ _ r).symm ▸ S.smul_mem h1 r }
+      (Algebra.algebraMap_eq_smul_one (R := R) (A := A) r).symm ▸ SMulMemClass.smul_mem r h1 }
 #align non_unital_star_subalgebra.to_star_subalgebra NonUnitalStarSubalgebra.toStarSubalgebra
 
 theorem StarSubalgebra.toNonUnitalStarSubalgebra_toStarSubalgebra (S : StarSubalgebra R A) :
-    S.toNonUnitalStarSubalgebra.toStarSubalgebra S.one_mem' = S :=
-  StarSubalgebra.casesOn S fun _ _ _ _ _ _ _ => rfl
+    S.toNonUnitalStarSubalgebra.toStarSubalgebra S.one_mem' = S := by cases S; rfl
 #align star_subalgebra.to_non_unital_star_subalgebra_to_star_subalgebra StarSubalgebra.toNonUnitalStarSubalgebra_toStarSubalgebra
 
 theorem NonUnitalStarSubalgebra.toStarSubalgebra_toNonUnitalStarSubalgebra
     (S : NonUnitalStarSubalgebra R A) (h1 : (1 : A) ∈ S) :
-    (NonUnitalStarSubalgebra.toStarSubalgebra S h1).toNonUnitalStarSubalgebra = S := by cases S; rfl
+    (NonUnitalStarSubalgebra.toStarSubalgebra S h1).toNonUnitalStarSubalgebra = S := by
+  cases S; rfl
 #align non_unital_star_subalgebra.to_star_subalgebra_to_non_unital_star_subalgebra NonUnitalStarSubalgebra.toStarSubalgebra_toNonUnitalStarSubalgebra
 
-/-- The natural `R`-algebra homomorphism from the unitization of a non-unital star_subalgebra to
-its `algebra.adjoin`. -/
+/-- The natural star `R`-algebra homomorphism from the unitization of a non-unital star subalgebra
+to its `StarSubalgebra.adjoin`. -/
 def NonUnitalStarSubalgebra.unitization (S : NonUnitalStarSubalgebra R A) :
     Unitization R S →⋆ₐ[R] StarSubalgebra.adjoin R (S : Set A) :=
   Unitization.starLift
-    { toFun := fun x : S =>
-        (⟨x, StarSubalgebra.subset_adjoin R _ x.Prop⟩ : StarSubalgebra.adjoin R (S : Set A))
+    { toFun := Subtype.map (p := (· ∈ S)) (q := (· ∈ StarSubalgebra.adjoin R (S : Set A))) id <|
+        fun _x hx => StarSubalgebra.subset_adjoin R _ hx
       map_smul' := fun (_ : R) _ => rfl
       map_zero' := rfl
       map_add' := fun _ _ => rfl
@@ -495,18 +454,15 @@ def NonUnitalStarSubalgebra.unitization (S : NonUnitalStarSubalgebra R A) :
 @[simp]
 theorem NonUnitalStarSubalgebra.unitization_apply_coe (S : NonUnitalStarSubalgebra R A)
     (x : Unitization R S) :
-    (S.Unitization x : A) = algebraMap R (StarSubalgebra.adjoin R (S : Set A)) x.fst + x.snd :=
+    (S.unitization x : A) = algebraMap R (StarSubalgebra.adjoin R (S : Set A)) x.fst + x.snd :=
   rfl
 #align non_unital_star_subalgebra.unitization_apply_coe NonUnitalStarSubalgebra.unitization_apply_coe
 
 theorem NonUnitalStarSubalgebra.unitization_surjective (S : NonUnitalStarSubalgebra R A) :
-    Function.Surjective S.Unitization :=
-  by
-  refine' fun x => StarSubalgebra.adjoin_induction' x _ _ _ _ _
-  · refine' fun x hx => ⟨(0, ⟨x, hx⟩), Subtype.ext _⟩
-    simp only [NonUnitalSubalgebra.unitization_apply_coe, Subtype.coe_mk]
-    change (algebraMap R { x // x ∈ Algebra.adjoin R (S : Set A) } 0 : A) + x = x
-    rw [map_zero, Subsemiring.coe_zero, zero_add]
+    Function.Surjective S.unitization := by
+  intro x
+  apply StarSubalgebra.adjoin_induction' (p := fun y => ∃ a, S.unitization a = y) x
+  · exact fun x hx => ⟨Unitization.inr ⟨x, hx⟩, Subtype.ext <| by simp⟩
   · exact fun r => ⟨algebraMap R (Unitization R S) r, AlgHom.commutes _ r⟩
   · rintro _ _ ⟨x, rfl⟩ ⟨y, rfl⟩
     exact ⟨x + y, map_add _ _ _⟩
@@ -516,5 +472,4 @@ theorem NonUnitalStarSubalgebra.unitization_surjective (S : NonUnitalStarSubalge
     exact ⟨star x, map_star _ _⟩
 #align non_unital_star_subalgebra.unitization_surjective NonUnitalStarSubalgebra.unitization_surjective
 
--- it would be nice to get the surjectivity and other results for free from the non-starred version
 end StarSubalgebra
